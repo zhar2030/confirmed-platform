@@ -147,7 +147,12 @@ export default function BookingsManager({
     '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'
   ];
 
-  // Filtering bookings
+  // List view: ALL bookings sorted by date+time (no date filter)
+  const allBookingsSorted = [...bookings]
+    .filter(b => staffFilter === 'all' || b.staffId === staffFilter)
+    .sort((a, b) => a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date));
+
+  // Timeline view: only the selected date (used for the hourly grid)
   const filteredBookings = bookings.filter(b => {
     const matchesDate = b.date === selectedDate;
     const matchesStaff = staffFilter === 'all' || b.staffId === staffFilter;
@@ -926,21 +931,21 @@ export default function BookingsManager({
           <div className="flex justify-between items-center pb-2 border-b border-[#F6F6F4]">
             <h3 className="font-serif text-sm font-bold text-[#14332B] flex items-center gap-2">
               <List className="w-4 h-4 text-[#FF5A5F]" />
-              <span>{isAr ? 'الحجوزات النشطة اليوم' : 'Active Bookings Today'}</span>
+              <span>{isAr ? 'جميع الحجوزات' : 'All Bookings'}</span>
             </h3>
             <span className="text-[10px] bg-[#FFF0F0] text-[#FF5A5F] font-bold px-2 py-0.5 rounded-full">
-              {filteredBookings.length}
+              {allBookingsSorted.length}
             </span>
           </div>
 
-          {filteredBookings.length === 0 ? (
+          {allBookingsSorted.length === 0 ? (
             <div className="text-center py-12 text-[#6E6A63] space-y-2">
               <CalendarIcon className="w-10 h-10 text-[#FF5A5F]/20 mx-auto" />
-              <p className="text-xs font-medium">{isAr ? 'لا توجد حجوزات مسجلة اليوم.' : 'No bookings today.'}</p>
+              <p className="text-xs font-medium">{isAr ? 'لا توجد حجوزات مسجلة بعد.' : 'No bookings yet.'}</p>
             </div>
           ) : (
             <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
-              {filteredBookings.map((b) => {
+              {allBookingsSorted.map((b) => {
                 const isCurrentlyDragged = draggedBookingId === b.id;
                 return (
                   <div 
@@ -964,10 +969,18 @@ export default function BookingsManager({
                             <MessageCircle className="w-2.5 h-2.5" /> واتساب
                           </span>
                         )}
+                        {b.source === 'online' && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 shrink-0">
+                            🌐 {isAr ? 'أونلاين' : 'Online'}
+                          </span>
+                        )}
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FFF0F0] text-[#FF5A5F] font-mono">
-                        {b.time}
-                      </span>
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FFF0F0] text-[#FF5A5F] font-mono">
+                          {b.time}
+                        </span>
+                        <span className="text-[9px] text-slate-400 font-mono">{b.date}</span>
+                      </div>
                     </div>
 
                     <div className="mt-2 text-[11px] text-slate-500 space-y-1">
