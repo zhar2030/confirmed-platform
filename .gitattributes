@@ -1,0 +1,5 @@
+confirmed-salon-platform.zip filter=lfs diff=lfs merge=lfs -text
+downloads/salon-hostinger.zip filter=lfs diff=lfs merge=lfs -text
+downloads/salon-platform-full.zip filter=lfs diff=lfs merge=lfs -text
+downloads/zi8W7KaF filter=lfs diff=lfs merge=lfs -text
+salon-hostinger.zip filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,51 @@
+/root/confirmed-server$ echo "NODE_ENV=production" >> /root/confirmed-server/.env && pm2 restart confirmed && sleep 3 && curl http://localhost:3000/api/healthz
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [confirmed](ids: [ 0 ])
+[PM2] [confirmed](0) ✓
+┌────┬──────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name         │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼──────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ confirmed    │ default     │ 1.0.0   │ fork    │ 33108    │ 0s     │ 139  │ online    │ 0%       │ 18.4mb   │ root     │ disabled │
+└────┴──────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+host metrics | cpu: 12% | ram usage: 14% | eth0: ⇓ 0.058mb/s ⇑ 0mb/s | disk: ⇓ 0mb/s ⇑ 0.014mb/s |
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100    15  100    15    0     0    947      0 --:--:-- --:--:-- --:--:--  1000
+{"status":"ok"}
+/root/confirmed-server$ grep "DocumentRoot" /etc/apache2/sites-enabled/000-default-le-ssl.conf && ls /root/confirmed-server/public/
+    DocumentRoot /root/confirmed-server/public
+assets
+favicon.svg
+index.html
+landing-page.html
+logo.png
+robots.txt
+/root/confirmed-server$ sudo sed -i 's|DocumentRoot /root/confirmed-server/public|DocumentRoot /root/confirmed-server/public\n    DirectoryIndex index.html\n    Options -Indexes|' /etc/apache2/sites-enabled/000-default-le-ssl.conf && sudo apache2ctl configtest && sudo systemctl reload apache2
+Syntax OK
+/root/confirmed-server$ ls /etc/apache2/sites-enabled/ && ls /etc/apache2/sites-available/ && sudo apache2ctl -S 2>&1 | head -20
+000-default.conf
+000-default-le-ssl (1).conf
+000-default-le-ssl.conf
+000-default.conf
+000-default-le-ssl.conf
+default-ssl.conf
+VirtualHost configuration:
+*:443                  is a NameVirtualHost
+         default server confirmedgrowth.com (/etc/apache2/sites-enabled/000-default-le-ssl (1).conf:2)
+         port 443 namevhost confirmedgrowth.com (/etc/apache2/sites-enabled/000-default-le-ssl (1).conf:2)
+         port 443 namevhost confirmedgrowth.com (/etc/apache2/sites-enabled/000-default-le-ssl.conf:2)
+*:80                   srv1847904.hstgr.cloud (/etc/apache2/sites-enabled/000-default.conf:1)
+ServerRoot: "/etc/apache2"
+Main DocumentRoot: "/var/www/html"
+Main ErrorLog: "/var/log/apache2/error.log"
+Mutex watchdog-callback: using_defaults
+Mutex rewrite-map: using_defaults
+Mutex ssl-stapling-refresh: using_defaults
+Mutex ssl-stapling: using_defaults
+Mutex proxy: using_defaults
+Mutex ssl-cache: using_defaults
+Mutex default: dir="/var/run/apache2/" mechanism=default 
+PidFile: "/var/run/apache2/apache2.pid"
+Define: DUMP_VHOSTS
+Define: DUMP_RUN_CFG
+User: name="www-data" id=33

@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Cairo", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-serif: "Amiri", Georgia, serif;
+  --font-data: "IBM Plex Sans Arabic", "Cairo", system-ui, sans-serif;
+}
+
+/* ─── Base ─────────────────────────────────────────────── */
+body {
+  font-family: "Cairo", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #F6F6F4;
+  color: #1C1B18;
+}
+
+/* ─── Font Roles ────────────────────────────────────────── */
+
+/* Cairo — UI chrome: buttons, nav, labels, lists */
+.font-ui {
+  font-family: "Cairo", system-ui, sans-serif;
+}
+
+/* Amiri — brand word "رفاه"/CONFIRMED, hero headlines, section titles */
+.font-brand {
+  font-family: "Amiri", Georgia, serif;
+  font-feature-settings: "liga" 1, "calt" 1;
+}
+
+/* IBM Plex Sans Arabic — numbers, stats, tables, code-like data */
+.font-data {
+  font-family: "IBM Plex Sans Arabic", "Cairo", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* ─── Global overrides ──────────────────────────────────── */
+
+/* All monetary amounts, percentages, counts → IBM Plex Sans Arabic */
+[data-numeric],
+.stat-number,
+.price-value,
+.count-value {
+  font-family: "IBM Plex Sans Arabic", "Cairo", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tailwind font-serif maps to Amiri */
+.font-serif {
+  font-family: "Amiri", Georgia, serif !important;
+}
+
+/* Tailwind font-mono override for Arabic numerics */
+.font-mono {
+  font-family: "IBM Plex Sans Arabic", ui-monospace, monospace !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Typography scale ──────────────────────────────────── */
+
+/* Hero / display headings → Amiri for elegance */
+h1 {
+  font-family: "Amiri", Georgia, serif;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* Section headings → Cairo bold */
+h2, h3 {
+  font-family: "Cairo", system-ui, sans-serif;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* Sub-headings and labels → Cairo semibold */
+h4, h5, h6 {
+  font-family: "Cairo", system-ui, sans-serif;
+  font-weight: 600;
+}
+
+/* Buttons → Cairo semibold, slightly tighter */
+button, [role="button"] {
+  font-family: "Cairo", system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Inputs and form controls → Cairo */
+input, select, textarea {
+  font-family: "Cairo", "IBM Plex Sans Arabic", system-ui, sans-serif;
+}
+
+/* Table cells with numbers → IBM Plex Sans Arabic */
+td.numeric, th.numeric {
+  font-family: "IBM Plex Sans Arabic", "Cairo", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── RTL refinements ───────────────────────────────────── */
+[dir="rtl"] {
+  font-family: "Cairo", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  text-align: right;
+}
+
+[dir="rtl"] h1 {
+  font-family: "Amiri", Georgia, serif;
+}
+
+[dir="ltr"] {
+  font-family: "IBM Plex Sans Arabic", "Cairo", "Inter", system-ui, sans-serif;
+}
+
+/* ─── Brand name special treatment ─────────────────────── */
+.brand-name {
+  font-family: "Amiri", Georgia, serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Amiri italic for decorative accents */
+.font-brand-italic {
+  font-family: "Amiri", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ─── Animations ────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slideIn {
+  animation: slideIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-scaleIn {
+  animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ─── Remove browser default blue outline on mouse click ── */
+/* Keeps outline for keyboard navigation (accessibility) */
+*:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}

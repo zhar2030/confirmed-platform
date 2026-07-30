@@ -1,0 +1,92 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "P4LD249KI1f2QrnKxy2Wt"
+uri = "file://exports/confirmed-server.zip"
+type = "unspecified"
+title = "confirmed-server.zip — إصلاح نهائي"
+
+[[outputs]]
+id = "0tt_i6XtOTEKZv6ZnWpxP"
+uri = "file://server-update.zip"
+type = "unspecified"
+title = "server-update.zip — ملفات السيرفر المحدّثة"
+
+[[outputs]]
+id = "sZ4NWhE590Z3AopNSmHUy"
+uri = "file://confirmed-update.zip"
+type = "unspecified"
+title = "confirmed-update.zip — النسخة المحدثة"
+
+[[outputs]]
+id = "sqGYR-cwMt_ArBxej5Xrt"
+uri = "file://frontend-update.zip"
+type = "unspecified"
+title = "frontend-update.zip — تحديث الواجهة فقط"
+
+[[outputs]]
+id = "NMUb5xXPMCrDdKaoGAUym"
+uri = "file://artifacts/api-server/src/routes/providers.ts"
+type = "unspecified"
+title = "providers.ts — إصلاح رفع الشعار"
+
+[[outputs]]
+id = "oH5Rbn0oJdldujVr8PegA"
+uri = "file://providers_fix.zip"
+type = "unspecified"
+title = "providers_fix.zip — إصلاح رفع الشعار"
+
+[[outputs]]
+id = "fZXKwBYbItkIDDLloduEt"
+uri = "file://dist_fix.zip"
+type = "unspecified"
+title = "dist_fix.zip — index.mjs المُصلح"
+
+[[outputs]]
+id = "D_U3e4Z6rxBm441Danl5v"
+uri = "file://salon_frontend.zip"
+type = "unspecified"
+title = "salon_frontend.zip — الفرونت إيند كامل"
+
+[[outputs]]
+id = "9zPrqPnnbW6nzJmbbhoLE"
+uri = "file://frontend_assets.zip"
+type = "unspecified"
+title = "frontend_assets.zip — الفرونت إيند (687 KB)"
+
+[[outputs]]
+id = "nj-9VNT9NI_b_ydyniDr9"
+uri = "file://deploy_complete.zip"
+type = "unspecified"
+title = "deploy_complete.zip — النسخة الكاملة (1.4 MB)"
+
+[[outputs]]
+id = "KMltbw_AIdUE5Lojn_j0c"
+uri = "file://deploy_api_fix.zip"
+type = "unspecified"
+title = "deploy_api_fix.zip — إصلاح خدمات الصالونات الجديدة"
+
+[[outputs]]
+id = "Ar6zgfsJaJd9AH4h3jDKj"
+uri = "file://confirmed_deploy_final.zip"
+type = "unspecified"
+title = "confirmed_deploy_final.zip — النسخة الكاملة + سكريبت تثبيت تلقائي"
+
+[[outputs]]
+id = "mblOxAqPRcejMz0leLv2a"
+uri = "file://confirmed_final.zip"
+type = "unspecified"
+title = "confirmed_final.zip — النسخة النهائية الصحيحة"
+
+[[outputs]]
+id = "xzmhXlZLROWZQvEKsEVEF"
+uri = "file://artifacts/salon-platform/public/confirmed-final.zip"
+type = "unspecified"
+title = "CONFIRMED — النسخة النهائية (Frontend + Backend + Deploy Script)"
+
+[[outputs]]
+id = "IOhpaj-rmaiX47W5mZHcc"
+uri = "file://artifacts/salon-platform/public/confirmed-prod.zip"
+type = "unspecified"
+title = "CONFIRMED — نسخة الإنتاج النهائية (جاهزة لـ Hostinger VPS)"

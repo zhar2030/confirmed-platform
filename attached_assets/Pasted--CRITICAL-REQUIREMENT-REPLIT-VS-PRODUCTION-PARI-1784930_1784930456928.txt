@@ -1,0 +1,234 @@
+==================================================
+CRITICAL REQUIREMENT — REPLIT VS PRODUCTION PARITY AUDIT
+==================================================
+
+The application was originally developed and completed on Replit, then deployed to an external production server.
+
+The production version is currently missing or not exposing important functionality that exists or is expected to exist in the original project.
+
+You MUST perform a complete parity audit between:
+
+1. The complete source code and functionality of the Replit project.
+2. The actual production/deployed version.
+3. The database and production environment configuration.
+
+The objective is to ensure that NOTHING was lost, hidden, disconnected, or broken during deployment.
+
+==================================================
+ADMIN AND SUPER ADMIN VERIFICATION
+==================================================
+
+The system MUST include and correctly expose all required administrative access points.
+
+Audit and verify:
+
+- Admin login
+- Super Admin login
+- Admin dashboard
+- Super Admin dashboard
+- Admin routes
+- Super Admin routes
+- Admin authentication
+- Super Admin authentication
+- Admin roles
+- Super Admin roles
+- Role-based permissions
+- Protected admin APIs
+- Admin navigation
+- Super Admin navigation
+- Admin settings
+- User management
+- Partner/provider management
+- Subscription management
+- Package management
+- Payment management
+- Reports
+- System settings
+- Platform configuration
+- Database administration features if implemented
+
+If these features exist in the source code but are not visible in the production interface, determine exactly why.
+
+Check for:
+
+- Missing routes
+- Missing navigation links
+- Hidden UI elements
+- Incorrect conditional rendering
+- Incorrect role detection
+- Incorrect authentication state
+- Missing environment variables
+- Incorrect API URLs
+- Failed API calls
+- Database connection problems
+- Missing database records
+- Incorrect permissions
+- Production build differences
+- Feature flags
+- Disabled modules
+- Incorrect deployment configuration
+
+Do NOT assume that a feature is intentionally hidden simply because it is not visible.
+
+==================================================
+COMPLETE NAVIGATION AND UI ELEMENT AUDIT
+==================================================
+
+Audit every visible and hidden navigation element.
+
+For every:
+
+- Button
+- Link
+- Menu item
+- Dropdown
+- Icon
+- Toggle
+- Switch
+- Tab
+- Modal trigger
+- Form submission
+- CTA
+- Login option
+- Registration option
+
+verify that it has a real working action.
+
+No button or important UI element may be decorative or non-functional unless it is explicitly intended to be decorative.
+
+For each element, verify:
+
+1. It has the correct event handler.
+2. It navigates to the correct route.
+3. The route exists.
+4. The destination page loads.
+5. Required API requests work.
+6. The action completes successfully.
+7. Errors are handled correctly.
+8. Loading states work correctly.
+
+==================================================
+AUTHENTICATION ENTRY POINT AUDIT
+==================================================
+
+The public website must correctly expose all required authentication entry points.
+
+Verify the complete flow for:
+
+- Customer login
+- Partner/Provider login
+- Admin login
+- Super Admin login
+
+If the architecture intentionally uses a unified login system, verify that the system correctly detects the user role and redirects the user to the correct dashboard.
+
+If separate login systems are required, verify that every login entry point is accessible and functional.
+
+The production version must not accidentally expose only the Partner login while hiding Admin or Super Admin access.
+
+==================================================
+FEATURE INVENTORY COMPARISON
+==================================================
+
+Create a complete inventory of every feature found in the source code.
+
+For every feature, classify it as:
+
+- Working in Replit
+- Working in Production
+- Broken in Production
+- Missing in Production
+- Inaccessible in Production
+- Partially implemented
+- Requires configuration
+- Requires database data
+
+Then fix every feature that should be available in production.
+
+==================================================
+DEPLOYMENT LOSS DETECTION
+==================================================
+
+Investigate whether any functionality was lost during:
+
+- Build process
+- Deployment
+- File transfer
+- Environment variable configuration
+- Database migration
+- API configuration
+- Routing configuration
+- Reverse proxy configuration
+- Server configuration
+- Production build optimization
+
+Specifically search for features that exist in source code but are missing from the production UI.
+
+==================================================
+MANDATORY FINAL CHECK
+==================================================
+
+Before final delivery, manually and technically verify the following:
+
+PUBLIC WEBSITE
+- Homepage
+- Navigation
+- Language switching
+- Arabic RTL
+- English LTR
+- All CTA buttons
+- Registration
+- Login
+
+PARTNER/PROVIDER
+- Registration
+- Login
+- Dashboard
+- All provider features
+
+ADMIN
+- Admin login
+- Admin dashboard
+- All admin routes
+- All admin features
+
+SUPER ADMIN
+- Super Admin login
+- Super Admin dashboard
+- Platform-level controls
+- All Super Admin features
+
+SYSTEM
+- Authentication
+- Authorization
+- Database
+- APIs
+- File uploads
+- Emails
+- Notifications
+- Payments
+- Settings
+- All critical integrations
+
+Do not consider the project complete if any major system area is missing, inaccessible, or non-functional.
+
+==================================================
+FINAL ACCEPTANCE CRITERIA
+==================================================
+
+The project is accepted only when:
+
+1. The production version contains all required functionality from the original project.
+2. Admin access is available and functional.
+3. Super Admin access is available and functional.
+4. All dashboards are accessible through valid authentication flows.
+5. All major buttons and navigation elements work.
+6. All API integrations work.
+7. The database is correctly connected.
+8. All user roles work correctly.
+9. No critical feature is missing because of deployment.
+10. The final project has been tested end-to-end.
+
+If any of the above is not working, status MUST be:
+
+NOT PRODUCTION READY

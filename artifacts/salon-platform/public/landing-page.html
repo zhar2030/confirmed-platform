@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CONFIRMED – نظام إدارة الصالونات في السعودية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root { --red:#FF5A5F; --green:#14332B; --cream:#F6F6F4; --border:#E9E7E2; --text:#1C1B18; --muted:#6E6A63; }
+    * { box-sizing: border-box; }
+    body { font-family:'Cairo',sans-serif; background:var(--cream); color:var(--text); margin:0; }
+    .serif { font-family:'Playfair Display',serif; }
+    header { position:sticky; top:0; z-index:50; transition:all .3s; background:transparent; }
+    header.scrolled { background:rgba(255,255,255,.93); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 1px 12px rgba(0,0,0,.06); }
+    details summary { list-style:none; cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+    details summary::-webkit-details-marker { display:none; }
+    .faq-plus { display:inline-block; transition:transform .2s; color:var(--red); font-size:1.3rem; font-weight:700; flex-shrink:0; margin-right:1rem; }
+    details[open] .faq-plus { transform:rotate(45deg); }
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:100; display:flex; align-items:center; justify-content:center; padding:1rem; }
+    .modal { background:#fff; border-radius:1.5rem; padding:2rem; width:100%; max-width:460px; max-height:90vh; overflow-y:auto; position:relative; }
+    .close-btn { position:absolute; top:.875rem; left:.875rem; width:2rem; height:2rem; border-radius:50%; border:1px solid var(--border); background:var(--cream); cursor:pointer; font-size:1rem; color:var(--muted); display:flex; align-items:center; justify-content:center; }
+    input, select, textarea { outline:none; font-family:'Cairo',sans-serif; }
+    input:focus, select:focus, textarea:focus { border-color:var(--red)!important; }
+    .btn-p { background:var(--red); color:#fff; border-radius:.75rem; font-weight:700; cursor:pointer; border:none; transition:background .2s; display:inline-block; text-align:center; }
+    .btn-p:hover { background:#E04B50; }
+    .btn-o { border:2px solid var(--red); color:var(--red); border-radius:.75rem; font-weight:700; cursor:pointer; background:transparent; transition:all .2s; display:inline-block; text-align:center; }
+    .btn-o:hover { background:var(--red); color:#fff; }
+    .card { transition:all .3s; border:1px solid var(--border); border-radius:1rem; padding:1.5rem; background:#fff; }
+    .card:hover { box-shadow:0 20px 40px rgba(0,0,0,.09); transform:translateY(-2px); }
+    .card:hover .ic { background:var(--red)!important; color:#fff!important; }
+    .ic { transition:all .3s; width:2.75rem; height:2.75rem; border-radius:.75rem; background:#FFF0F0; color:var(--red); display:flex; align-items:center; justify-content:center; margin-bottom:1.1rem; font-size:1.2rem; }
+    .bill-btn { border-radius:9999px; padding:.45rem .875rem; font-size:.75rem; font-weight:700; cursor:pointer; border:none; background:transparent; color:var(--muted); transition:all .2s; }
+    .bill-btn.on { background:var(--red); color:#fff; }
+    #toast { position:fixed; bottom:2rem; right:2rem; background:var(--green); color:#fff; border-radius:1rem; padding:.875rem 1.5rem; font-size:.85rem; font-weight:700; z-index:300; transform:translateY(100px); opacity:0; transition:all .35s; pointer-events:none; }
+    #toast.show { transform:translateY(0); opacity:1; }
+    a { text-decoration:none; }
+    .nav-link { font-size:.875rem; font-weight:600; color:rgba(28,27,24,.8); transition:color .2s; }
+    .nav-link:hover { color:var(--red); }
+    .feat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:1.75rem; }
+    .step-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:2rem; max-width:62rem; margin:0 auto; }
+    .price-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(17rem,1fr)); gap:2rem; max-width:72rem; margin:0 auto; align-items:stretch; }
+    .test-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(17rem,1fr)); gap:2rem; }
+    .contact-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(18rem,1fr)); gap:3rem; align-items:start; }
+    .foot-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(11rem,1fr)); gap:2.5rem; margin-bottom:3rem; }
+    .hero-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; }
+    @media(max-width:1023px){ .hero-grid { grid-template-columns:1fr; } }
+    ul.feat-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.75rem; font-size:.85rem; }
+    ul.feat-list li { display:flex; align-items:flex-start; gap:.5rem; }
+    ul.feat-list li::before { content:'✓'; color:var(--red); margin-top:.1rem; flex-shrink:0; }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header id="hdr">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;height:5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+    <button onclick="scrollTo({top:0,behavior:'smooth'})" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.5rem;">
+      <span class="serif" style="font-size:1.5rem;font-weight:800;color:var(--green);letter-spacing:-.02em;">CONFIRMED</span>
+      <span style="font-size:.6rem;color:var(--muted);font-weight:700;letter-spacing:.07em;">SALON PLATFORM</span>
+    </button>
+    <nav style="display:flex;gap:1.25rem;align-items:center;">
+      <a href="#features" class="nav-link">المميزات</a>
+      <a href="#how" class="nav-link">كيف يعمل</a>
+      <a href="#pricing" class="nav-link">الأسعار</a>
+      <a href="#faq" class="nav-link">الأسئلة الشائعة</a>
+      <a href="#contact" class="nav-link">اتصلي بنا</a>
+    </nav>
+    <div style="display:flex;gap:.75rem;">
+      <button onclick="openLogin()" class="btn-o" style="padding:.6rem 1.1rem;font-size:.85rem;">🔑 تسجيل الدخول</button>
+      <button onclick="openReg()" class="btn-p" style="padding:.6rem 1.1rem;font-size:.85rem;">✨ ابدئي مجاناً</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section style="padding:5rem 0;background:#fff;overflow:hidden;">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div class="hero-grid">
+      <!-- Text -->
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:.5rem;padding:.375rem .875rem;border-radius:9999px;background:#FFF0F0;border:1px solid var(--border);font-size:.75rem;font-weight:700;color:var(--red);margin-bottom:1.25rem;">
+          <span style="width:.45rem;height:.45rem;border-radius:50%;background:#10B981;display:inline-block;"></span>
+          مصمّم خصيصاً لصالونات ومراكز السبا في السعودية 🇸🇦
+        </div>
+        <h1 class="serif" style="font-size:clamp(2rem,3.5vw,3rem);color:var(--green);font-weight:700;line-height:1.25;margin-bottom:1.25rem;">
+          صالونك يشتغل بنظام..<br/>
+          وأنتِ تركّزين على <span style="color:var(--red);">الإبداع</span>
+        </h1>
+        <p style="font-size:1.05rem;color:var(--muted);line-height:1.8;max-width:36rem;margin-bottom:1.75rem;">
+          نظام CONFIRMED السحابي يدير الحجوزات، الكاشير ونقاط البيع، الفواتير الإلكترونية المعتمدة وقاعدة بيانات عميلاتك من مكان واحد — عشان يقل الغياب عن المواعيد، وتزيد مبيعاتك بنسبة تفوق 30٪.
+        </p>
+        <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+          <a href="#pricing" class="btn-p" style="padding:1rem 2rem;font-size:.95rem;box-shadow:0 8px 24px rgba(255,90,95,.25);">ابدئي تجربتك المجانية (١٤ يوماً)</a>
+          <a href="#contact" class="btn-o" style="padding:1rem 2rem;font-size:.95rem;">اطلبي عرضاً توضيحياً</a>
+        </div>
+        <div style="display:flex;gap:1.5rem;font-size:.85rem;color:var(--muted);">
+          <span>✅ لا يتطلب بطاقة ائتمانية</span>
+          <span>✅ إلغاء في أي وقت</span>
+        </div>
+      </div>
+      <!-- Widget -->
+      <div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.11);padding:1.75rem;max-width:26rem;margin:0 auto;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;right:0;left:0;height:4px;background:var(--red);border-radius:1.5rem 1.5rem 0 0;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">
+            <div>
+              <h3 style="font-weight:700;font-size:1rem;color:var(--text);margin:0 0 .2rem;">جدول مواعيد اليوم</h3>
+              <p style="font-size:.72rem;color:var(--muted);margin:0;" id="today-lbl">—</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:.4rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;padding:.35rem .75rem;">
+              <span style="width:.45rem;height:.45rem;border-radius:50%;background:#10B981;display:inline-block;"></span>
+              <span id="clk" style="font-family:monospace;font-weight:700;font-size:.78rem;color:var(--text);">00:00:00</span>
+            </div>
+          </div>
+          <!-- Slot 1 -->
+          <div style="display:flex;flex-direction:column;gap:.625rem;">
+            <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem;border-radius:1rem;background:var(--cream);border:1px solid var(--border);">
+              <div style="min-width:3.25rem;text-align:center;">
+                <p id="t1t" style="font-family:monospace;font-weight:700;font-size:.7rem;color:var(--red);margin:0;">—</p>
+                <p id="t1r" style="font-size:.6rem;color:var(--muted);margin:.1rem 0 0;">—</p>
+              </div>
+              <div style="flex:1;">
+                <p style="font-weight:700;font-size:.875rem;color:var(--text);margin:0;">سارة المطيري</p>
+                <p style="font-size:.72rem;color:var(--muted);margin:0;">قص وسشوار • أمل</p>
+              </div>
+              <span style="background:#ECFDF5;color:#065F46;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:9999px;white-space:nowrap;">مؤكد</span>
+            </div>
+            <!-- Slot 2 -->
+            <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem;border-radius:1rem;background:var(--cream);border:1px solid var(--border);">
+              <div style="min-width:3.25rem;text-align:center;">
+                <p id="t2t" style="font-family:monospace;font-weight:700;font-size:.7rem;color:var(--red);margin:0;">—</p>
+                <p id="t2r" style="font-size:.6rem;color:var(--muted);margin:.1rem 0 0;">—</p>
+              </div>
+              <div style="flex:1;">
+                <p style="font-weight:700;font-size:.875rem;color:var(--text);margin:0;">نوف العتيبي</p>
+                <p style="font-size:.72rem;color:var(--muted);margin:0;">عناية بالأظافر • شهد</p>
+              </div>
+              <span style="background:#ECFDF5;color:#065F46;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:9999px;white-space:nowrap;">مؤكد</span>
+            </div>
+            <!-- Slot 3 -->
+            <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem;border-radius:1rem;background:#FFF0F0;border:1px solid rgba(255,90,95,.2);">
+              <div style="min-width:3.25rem;text-align:center;">
+                <p id="t3t" style="font-family:monospace;font-weight:700;font-size:.7rem;color:var(--red);margin:0;">—</p>
+                <p id="t3r" style="font-size:.6rem;color:var(--red);margin:.1rem 0 0;">—</p>
+              </div>
+              <div style="flex:1;">
+                <p style="font-weight:700;font-size:.875rem;color:var(--text);margin:0;">حصة الكثيري</p>
+                <p style="font-size:.72rem;color:var(--red);margin:0;">جلسة سبا ٩٠ دقيقة • أونلاين</p>
+              </div>
+              <span style="background:var(--red);color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:9999px;">جديد</span>
+            </div>
+          </div>
+          <!-- Stats -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.625rem;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);text-align:center;">
+            <div style="padding:.625rem;background:var(--cream);border-radius:.75rem;border:1px solid var(--border);">
+              <p class="serif" style="font-size:1.3rem;font-weight:700;color:var(--red);margin:0;">7</p>
+              <p style="font-size:.6rem;color:var(--muted);margin:.1rem 0 0;line-height:1.3;">حجوزات اليوم</p>
+            </div>
+            <div style="padding:.625rem;background:var(--cream);border-radius:.75rem;border:1px solid var(--border);">
+              <p class="serif" style="font-size:1.3rem;font-weight:700;color:#F59E0B;margin:0;">4.9 ★</p>
+              <p style="font-size:.6rem;color:var(--muted);margin:.1rem 0 0;line-height:1.3;">رضا العملاء</p>
+            </div>
+            <div style="padding:.625rem;background:var(--cream);border-radius:.75rem;border:1px solid var(--border);">
+              <p class="serif" style="font-size:1.3rem;font-weight:700;color:#059669;margin:0;">98٪</p>
+              <p style="font-size:.6rem;color:var(--muted);margin:.1rem 0 0;line-height:1.3;">نسبة الحضور</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TRUST BAR ===== -->
+<div style="padding:2.5rem 0;background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;text-align:center;">
+    <p style="font-size:.72rem;font-weight:700;letter-spacing:.1em;color:var(--red);text-transform:uppercase;margin:0 0 1rem;">تثق بنا صالونات ومراكز سبا كبرى في المملكة العربية السعودية 🇸🇦</p>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2.5rem;font-family:'Playfair Display',serif;color:var(--muted);font-size:1.05rem;">
+      <span class="nav-link" style="font-weight:700;">لُجَين سبا</span>
+      <span class="nav-link" style="font-weight:700;">مرايا بيوتي لاونج</span>
+      <span class="nav-link" style="font-weight:700;">دار الغيم للعناية</span>
+      <span class="nav-link" style="font-weight:700;">تالة لاونج</span>
+      <span class="nav-link" style="font-weight:700;">وتين التجميل</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FEATURES ===== -->
+<section id="features" style="padding:5rem 0;background:#fff;">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div style="text-align:center;max-width:46rem;margin:0 auto 3.5rem;">
+      <h2 class="serif" style="font-size:clamp(1.75rem,3vw,2.5rem);color:var(--green);font-weight:700;margin:0 0 1rem;">كل الأدوات اللي تحتاجينها لإدارة صالونك باحترافية كاملة</h2>
+      <p style="font-size:.95rem;color:var(--muted);line-height:1.75;margin:0;">بنينا نظام CONFIRMED ليلبي تطلعات رائدات الأعمال في مجال التجميل، ليريحك من جداول الإكسل والواتساب المشتت.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="card"><div class="ic">📅</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">إدارة الحجوزات والتقويم</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">تقويم تفاعلي مرن يسجل الحجوزات، يعيد جدولتها بالسحب والإفلات، ويظهر أوقات انشغال وخلو خبيرات التجميل بدقة.</p></div>
+      <div class="card"><div class="ic">🧾</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">نقاط البيع والفاتورة الإلكترونية</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">كاشير مبيعات متكامل للخدمات والمنتجات، يدعم ضريبة القيمة المضافة ومستوفٍ لمتطلبات هيئة الزكاة والضريبة والجمارك (ZATCA).</p></div>
+      <div class="card"><div class="ic">📦</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">إدارة المخزون والتنبيهات</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">تتبعي المنتجات والمواد الاستهلاكية. تنبيهات ذكية تخبرك بنقص المنتجات قبل نفادها لتتفادي أي انقطاع في الخدمات.</p></div>
+      <div class="card"><div class="ic">👤</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">إدارة العميلات وعلاقاتهن (CRM)</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">ملف خاص لكل عميلة يشمل تفضيلات صبغ الشعر، حساسية البشرة، عدد الزيارات، ومجموع مبيعاتها لمكافأتها على ولائها.</p></div>
+      <div class="card"><div class="ic">📣</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">أدوات تسويق وعروض ذكية</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">أرسلي حملات تسويق آلية ومخصصة عبر الواتساب والـ SMS للعميلات في المناسبات، وصممي كوبونات خصم لزيادة الإقبال.</p></div>
+      <div class="card"><div class="ic">💝</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">بطاقات الهدايا والعضويات</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">أنشئي بطاقات هدايا رقمية واشتراكات خاصة لعميلاتك المميزات، وعززي برامج الولاء لزيادة تكرار الزيارات.</p></div>
+      <div class="card"><div class="ic">📊</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">تقارير الأداء والإيرادات</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">تقارير أسبوعية وشهرية تفصيلية عن الإيرادات وأداء الموظفات وأكثر الخدمات مبيعاً لاتخاذ قرارات مدروسة.</p></div>
+      <div class="card"><div class="ic">🔔</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">تذكيرات تلقائية للمواعيد</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">تذكيرات آلية للعميلات قبل ٢٤ و٣ ساعات من الموعد عبر الواتساب والـ SMS لتقليل نسبة الغياب.</p></div>
+      <div class="card"><div class="ic">🌐</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">صفحة حجز ذاتي مخصصة</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">صفحة أنيقة بهوية صالونك تتيح للعميلات الحجز على مدار الساعة دون الحاجة للتواصل معك مباشرةً.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section id="how" style="padding:5rem 0;background:var(--cream);">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div style="text-align:center;max-width:40rem;margin:0 auto 3.5rem;">
+      <h2 class="serif" style="font-size:clamp(1.75rem,3vw,2.5rem);color:var(--green);font-weight:700;margin:0 0 .75rem;">ابدئي في ٣ خطوات بسيطة</h2>
+      <p style="color:var(--muted);margin:0;">من إنشاء الحساب إلى تفعيل الحجوزات الأونلاين خلال دقائق معدودة.</p>
+    </div>
+    <div class="step-grid">
+      <div style="background:rgba(255,255,255,.87);border:1px solid var(--border);border-radius:1.25rem;padding:2rem;">
+        <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">١</div>
+        <h3 class="serif" style="font-size:1.1rem;font-weight:700;color:var(--text);margin:0 0 .625rem;">إنشاء حسابك وتخصيصه</h3>
+        <p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">سجّلي صالونك، أدخلي قائمة الخدمات والأسعار، وحددي خبيرات التجميل وساعات عملهن بسهولة تامة.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.87);border:1px solid var(--border);border-radius:1.25rem;padding:2rem;">
+        <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">٢</div>
+        <h3 class="serif" style="font-size:1.1rem;font-weight:700;color:var(--text);margin:0 0 .625rem;">تفعيل رابط الحجز الذاتي</h3>
+        <p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">سيكون لديك صفحة حجوزات أنيقة مخصصة بهوية صالونك لتقوم عميلاتك بالحجز واختيار الخدمات والوقت المناسب.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.87);border:1px solid var(--border);border-radius:1.25rem;padding:2rem;">
+        <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">٣</div>
+        <h3 class="serif" style="font-size:1.1rem;font-weight:700;color:var(--text);margin:0 0 .625rem;">تشغيل الكاشير والتذكيرات</h3>
+        <p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">يبدأ النظام تلقائياً بإرسال رسائل تذكير للعميلات قبل موعدهن، وتتمكنين من محاسبتهن وإصدار فواتير ذكية.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section id="pricing" style="padding:5rem 0;background:var(--cream);">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div style="text-align:center;max-width:48rem;margin:0 auto 3.5rem;">
+      <h2 class="serif" style="font-size:clamp(1.75rem,3vw,2.5rem);color:var(--green);font-weight:700;margin:0 0 .75rem;">باقات تناسب جميع الصالونات ومراكز السبا</h2>
+      <p style="color:var(--muted);margin:0 0 1.5rem;">لا توجد رسوم خفية. جربي أي باقة مجاناً لمدة ١٤ يوماً دون الحاجة لبطاقة ائتمان.</p>
+      <div style="display:inline-flex;background:#fff;border:1px solid var(--border);border-radius:9999px;padding:.25rem;box-shadow:inset 0 1px 4px rgba(0,0,0,.06);">
+        <button class="bill-btn on" id="bm" onclick="setBill('m')">الدفع شهرياً</button>
+        <button class="bill-btn" id="by" onclick="setBill('y')">الدفع سنوياً (توفير ٢٠٪)</button>
+      </div>
+    </div>
+    <div class="price-grid">
+      <!-- Starter -->
+      <div style="border:1px solid var(--border);border-radius:1.5rem;padding:2rem;background:#fff;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 4px 20px rgba(0,0,0,.05);">
+        <div>
+          <h3 class="serif" style="font-size:1.2rem;font-weight:700;color:var(--green);margin:0 0 .375rem;">Starter</h3>
+          <p style="font-size:.75rem;color:var(--muted);margin:0 0 1.25rem;">للصالونات الصغيرة والناشئة</p>
+          <div style="margin-bottom:1.25rem;">
+            <span class="serif" id="ps" style="font-size:1.75rem;font-weight:700;color:var(--red);">199</span>
+            <span style="font-size:.75rem;color:var(--muted);font-weight:600;margin-right:.25rem;"> ر.س <span id="prs">شهرياً</span></span>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:1.25rem 0;" />
+          <ul class="feat-list">
+            <li>حتى ٣ خبيرات تجميل</li>
+            <li>جدول المواعيد وتقويم الحجوزات</li>
+            <li>صفحة حجز ذاتي مخصصة</li>
+            <li>تذكيرات واتساب تلقائية</li>
+            <li>قاعدة بيانات العميلات</li>
+            <li>تقارير شهرية بسيطة</li>
+          </ul>
+        </div>
+        <div style="padding-top:1.75rem;">
+          <button onclick="openReg()" class="btn-o" style="width:100%;padding:.875rem;font-size:.875rem;">ابدئي تجربتك المجانية</button>
+        </div>
+      </div>
+      <!-- Pro -->
+      <div style="border:2px solid var(--red);border-radius:1.5rem;padding:2rem;background:#fff;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 8px 32px rgba(255,90,95,.14);position:relative;">
+        <span style="position:absolute;top:-1rem;right:1.25rem;background:var(--red);color:#fff;font-size:.68rem;font-weight:700;padding:.25rem .875rem;border-radius:9999px;">الباقة الأكثر طلباً واختياراً</span>
+        <div>
+          <h3 class="serif" style="font-size:1.2rem;font-weight:700;color:var(--green);margin:0 0 .375rem;">Pro</h3>
+          <p style="font-size:.75rem;color:var(--muted);margin:0 0 1.25rem;">للصالونات المتوسطة والنامية</p>
+          <div style="margin-bottom:1.25rem;">
+            <span class="serif" id="pp" style="font-size:1.75rem;font-weight:700;color:var(--red);">399</span>
+            <span style="font-size:.75rem;color:var(--muted);font-weight:600;margin-right:.25rem;"> ر.س <span id="prp">شهرياً</span></span>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:1.25rem 0;" />
+          <ul class="feat-list">
+            <li>حتى ١٠ خبيرات تجميل</li>
+            <li>جميع مميزات Starter</li>
+            <li>نقاط البيع والفاتورة الإلكترونية (ZATCA)</li>
+            <li>إدارة المخزون والمنتجات</li>
+            <li>تقارير مفصلة وإحصاءات متقدمة</li>
+            <li>بطاقات الهدايا والعضويات</li>
+            <li>حملات تسويقية عبر SMS</li>
+            <li>دعم فني أولوي ٧/٢٤</li>
+          </ul>
+        </div>
+        <div style="padding-top:1.75rem;">
+          <button onclick="openReg()" class="btn-p" style="width:100%;padding:.875rem;font-size:.875rem;box-shadow:0 6px 20px rgba(255,90,95,.22);">ابدئي تجربتك المجانية</button>
+        </div>
+      </div>
+      <!-- Enterprise -->
+      <div style="border:1px solid var(--border);border-radius:1.5rem;padding:2rem;background:#fff;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 4px 20px rgba(0,0,0,.05);">
+        <div>
+          <h3 class="serif" style="font-size:1.2rem;font-weight:700;color:var(--green);margin:0 0 .375rem;">Enterprise</h3>
+          <p style="font-size:.75rem;color:var(--muted);margin:0 0 1.25rem;">لسلاسل الصالونات والمؤسسات الكبرى</p>
+          <div style="margin-bottom:.5rem;">
+            <span class="serif" style="font-size:1.6rem;font-weight:700;color:var(--green);">تواصل معنا</span>
+          </div>
+          <p style="font-size:.72rem;color:var(--muted);margin:0 0 1.25rem;">تخصيص كامل وحلول مخصصة</p>
+          <hr style="border:none;border-top:1px solid var(--border);margin:1.25rem 0;" />
+          <ul class="feat-list">
+            <li>عدد غير محدود من الخبيرات والفروع</li>
+            <li>جميع مميزات Pro</li>
+            <li>لوحة تحكم مركزية لجميع الفروع</li>
+            <li>تكاملات API مخصصة وERP</li>
+            <li>تدريب ونقل بيانات مجاني</li>
+            <li>مدير حساب مخصص</li>
+          </ul>
+        </div>
+        <div style="padding-top:1.75rem;">
+          <a href="#contact" id="ent-btn" style="display:block;width:100%;padding:.875rem;font-size:.875rem;border:2px solid var(--green);color:var(--green);border-radius:.75rem;font-weight:700;text-align:center;cursor:pointer;background:transparent;transition:all .2s;">اطلبي عرضاً توضيحياً</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section style="padding:5rem 0;background:#fff;">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div style="text-align:center;max-width:40rem;margin:0 auto 3.5rem;">
+      <h2 class="serif" style="font-size:clamp(1.75rem,3vw,2.5rem);color:var(--green);font-weight:700;margin:0 0 .75rem;">صاحبات صالونات يتكلمن عن CONFIRMED</h2>
+      <p style="font-size:.875rem;color:var(--muted);margin:0;">نحن نفخر بالنمو مع عائلتنا المتنامية من صالونات التجميل في السعودية.</p>
+    </div>
+    <div class="test-grid">
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:1.5rem;padding:2rem;display:flex;flex-direction:column;justify-content:space-between;gap:1.5rem;">
+        <p style="font-size:.9rem;color:rgba(28,27,24,.9);font-style:italic;line-height:1.8;margin:0;">"قبل CONFIRMED كنا نواجه مشكلة كبيرة في غياب العميلات أو تأخرهن عن المواعيد، مما يؤثر على دخل الصالون. الآن بفضل تذكيرات الواتساب التلقائية انخفضت نسبة الغياب لقرابة الصفر!"</p>
+        <div style="display:flex;align-items:center;gap:.75rem;padding-top:1rem;border-top:1px solid var(--border);">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:.875rem;flex-shrink:0;">ع</div>
+          <div><h4 style="font-weight:700;font-size:.875rem;color:var(--text);margin:0 0 .15rem;">عهود الشلوي</h4><p style="font-size:.7rem;color:var(--muted);margin:0;">مالكة صالون عهود بيوتي لاونج - الرياض</p></div>
+        </div>
+      </div>
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:1.5rem;padding:2rem;display:flex;flex-direction:column;justify-content:space-between;gap:1.5rem;">
+        <p style="font-size:.9rem;color:rgba(28,27,24,.9);font-style:italic;line-height:1.8;margin:0;">"نقاط البيع والفواتير الإلكترونية سريعة وممتازة، النظام مرخص ومطابق لمتطلبات هيئة الزكاة والضريبة والجمارك والتقرير المالي أسبوعي ريحنا كثير في حساب الأرباح ونسب الموظفات."</p>
+        <div style="display:flex;align-items:center;gap:.75rem;padding-top:1rem;border-top:1px solid var(--border);">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:.875rem;flex-shrink:0;">ن</div>
+          <div><h4 style="font-weight:700;font-size:.875rem;color:var(--text);margin:0 0 .15rem;">نورة الفهيد</h4><p style="font-size:.7rem;color:var(--muted);margin:0;">مديرة سبا ومركز العناية بالبشرة - جدة</p></div>
+        </div>
+      </div>
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:1.5rem;padding:2rem;display:flex;flex-direction:column;justify-content:space-between;gap:1.5rem;">
+        <p style="font-size:.9rem;color:rgba(28,27,24,.9);font-style:italic;line-height:1.8;margin:0;">"صفحة الحجز الذاتي بهوية صالوننا ريحت عميلاتنا، صاروا يحجزون بالليل والشارع مسكر وحنا نايمين، ونجي الصبح نلقى الجدول مليان خدمات ممتازة جداً!"</p>
+        <div style="display:flex;align-items:center;gap:.75rem;padding-top:1rem;border-top:1px solid var(--border);">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:.875rem;flex-shrink:0;">م</div>
+          <div><h4 style="font-weight:700;font-size:.875rem;color:var(--text);margin:0 0 .15rem;">منى القحطاني</h4><p style="font-size:.7rem;color:var(--muted);margin:0;">صاحبة مركز تالة سبا النسائي - الدمام</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq" style="padding:5rem 0;background:var(--cream);">
+  <div style="max-width:52rem;margin:0 auto;padding:0 1.5rem;">
+    <div style="text-align:center;margin-bottom:3.5rem;">
+      <h2 class="serif" style="font-size:clamp(1.75rem,3vw,2.5rem);color:var(--green);font-weight:700;margin:0 0 .75rem;">الأسئلة الشائعة</h2>
+      <p style="font-size:.875rem;color:var(--muted);margin:0;">كل ما تودين معرفته حول نظام CONFIRMED لإدارة الصالونات</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <details style="background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+        <summary style="font-weight:700;color:var(--green);font-size:.9rem;"><span>هل الفاتورة الإلكترونية الصادرة معتمدة رسميًا؟</span><span class="faq-plus">+</span></summary>
+        <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.8;">نعم بالتأكيد، نظام CONFIRMED مهيأ ومتطابق بالكامل مع شروط هيئة الزكاة والضريبة والجمارك (المرحلة الأولى والمرحلة الثانية للربط والتكامل)، ويقوم بإصدار فاتورة إلكترونية مبسطة تحتوي على الـ QR Code المطلوب نظاماً.</p>
+      </details>
+      <details style="background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+        <summary style="font-weight:700;color:var(--green);font-size:.9rem;"><span>هل أحتاج إلى شراء أجهزة خاصة لاستخدام CONFIRMED؟</span><span class="faq-plus">+</span></summary>
+        <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.8;">لا، نظام CONFIRMED سحابي بالكامل. يمكنك تشغيله من أي جهاز متصل بالإنترنت—سواء كان آيباد، تابلت، جوال، أو كمبيوتر مكتبي عادي، ولا يتطلب تركيب برمجيات معقدة.</p>
+      </details>
+      <details style="background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+        <summary style="font-weight:700;color:var(--green);font-size:.9rem;"><span>هل تدعمون نقل العميلات والبيانات من نظام قديم؟</span><span class="faq-plus">+</span></summary>
+        <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.8;">نعم، فريق دعم CONFIRMED يساعدك مجاناً في استيراد ونقل قائمة عميلاتك، وقائمة الخدمات والأسعار من ملفات Excel أو أي نظام قديم لتبدئي العمل دون أي تشتت أو ضياع للبيانات.</p>
+      </details>
+      <details style="background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+        <summary style="font-weight:700;color:var(--green);font-size:.9rem;"><span>كيف يعمل تذكير الواتساب والـ SMS؟</span><span class="faq-plus">+</span></summary>
+        <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.8;">بمجرد تأكيد الحجز، يقوم النظام تلقائياً بجدولة رسائل مخصصة تذهب لجوال العميلة قبل الموعد بـ ٢٤ ساعة وتنبيه إضافي قبل الموعد بـ ٣ ساعات لمساعدتها في الحضور وتسهيل تأكيد أو إلغاء الحجز.</p>
+      </details>
+      <details style="background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+        <summary style="font-weight:700;color:var(--green);font-size:.9rem;"><span>هل يمكنني تجربة النظام قبل الدفع؟</span><span class="faq-plus">+</span></summary>
+        <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.8;">بالتأكيد! جميع باقاتنا تأتي مع تجربة مجانية لمدة ١٤ يوماً كاملة بدون أي التزام أو الحاجة لإدخال بيانات بطاقة ائتمانية. جربي النظام كاملاً وقرري بحرية تامة.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONTACT ===== -->
+<section id="contact" style="padding:5rem 0;background:#fff;border-top:1px solid var(--border);">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div class="contact-grid">
+      <div>
+        <span style="font-size:.7rem;font-weight:700;color:var(--red);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:1rem;">استشيري خبيراتنا</span>
+        <h2 class="serif" style="font-size:clamp(1.5rem,3vw,2.25rem);color:var(--green);font-weight:700;margin:0 0 1rem;line-height:1.35;">اطلبي عرضاً توضيحياً مجاناً وجرّبي نظام CONFIRMED</h2>
+        <p style="color:var(--muted);line-height:1.8;margin:0 0 1.5rem;">سيتواصل معك فريقنا لمساعدتك وتزويدك ببيانات الدخول، وشرح الميزات الملائمة لصالونك.</p>
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div style="display:flex;align-items:center;gap:.875rem;">
+            <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:#FFF0F0;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">✉️</div>
+            <div><p style="font-size:.7rem;color:var(--muted);margin:0 0 .15rem;">راسلنا على البريد الإلكتروني</p><p style="font-size:.875rem;font-weight:700;color:var(--text);margin:0;">marktning@onfirmedmarketing.com</p></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.875rem;">
+            <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:#FFF0F0;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📞</div>
+            <div><p style="font-size:.7rem;color:var(--muted);margin:0 0 .15rem;">رقم الاتصال المباشر وواتساب</p><p style="font-size:.875rem;font-weight:700;color:var(--text);margin:0;">920011445</p></div>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:1.5rem;padding:2rem;">
+        <div id="cf">
+          <form onsubmit="submitCF(event)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:.875rem;">
+              <div><label style="display:block;font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">اسمك الكريم *</label><input type="text" required placeholder="سارة المطيري" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:#fff;border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+              <div><label style="display:block;font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">نوع النشاط *</label><select style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:#fff;border:1px solid var(--border);border-radius:.75rem;color:var(--text);cursor:pointer;"><option>صالون نسائي متكامل</option><option>صالون شعر وأظافر</option><option>مركز سبا ومساج</option><option>مركز وعيادة تجميل</option><option>خدمات منزلية</option></select></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:.875rem;">
+              <div><label style="display:block;font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">البريد الإلكتروني *</label><input type="email" required placeholder="example@mail.com" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:#fff;border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+              <div><label style="display:block;font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">رقم جوال التواصل *</label><input type="tel" required placeholder="05xxxxxxxx" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:#fff;border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+            </div>
+            <div style="margin-bottom:1.1rem;"><label style="display:block;font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">أخبرينا عن صالونك (اختياري)</label><textarea rows="3" placeholder="كم عدد الموظفات لديك؟ وما هي الصعوبات الحالية؟" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:#fff;border:1px solid var(--border);border-radius:.75rem;color:var(--text);resize:vertical;font-family:'Cairo',sans-serif;"></textarea></div>
+            <button type="submit" class="btn-p" style="width:100%;padding:.875rem;font-size:.875rem;box-shadow:0 6px 20px rgba(255,90,95,.18);">إرسال طلب العرض التجريبي مجاناً</button>
+          </form>
+        </div>
+        <div id="cs" style="display:none;text-align:center;padding:2rem 0;">
+          <div style="width:3.5rem;height:3.5rem;border-radius:50%;background:#FFF0F0;color:var(--red);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.75rem;">✓</div>
+          <h3 class="serif" style="font-size:1.4rem;font-weight:700;color:var(--green);margin:0 0 .75rem;">شكراً لاهتمامك بـ CONFIRMED ✓</h3>
+          <p style="font-size:.875rem;color:var(--muted);line-height:1.75;margin:0 0 1rem;">تم استلام طلبك بنجاح. سنتواصل معك خلال ٢٤ ساعة لإعداد نسختك التجريبية.</p>
+          <button onclick="document.getElementById('cs').style.display='none';document.getElementById('cf').style.display='block'" style="font-size:.75rem;font-weight:700;color:var(--red);text-decoration:underline;background:none;border:none;cursor:pointer;">إرسال طلب آخر</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer style="background:#F8FAFC;color:#64748B;padding:4rem 0 2rem;border-top:1px solid #E2E8F0;">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div class="foot-grid">
+      <div>
+        <div class="serif" style="font-size:1.4rem;font-weight:800;color:var(--green);margin-bottom:.2rem;">CONFIRMED</div>
+        <div style="font-size:.6rem;color:var(--muted);letter-spacing:.07em;font-weight:700;margin-bottom:.875rem;">SALON PLATFORM</div>
+        <p style="font-size:.78rem;color:#94A3B8;line-height:1.7;margin:0;">منصة إدارة صالونات التجميل الأكثر تطوراً في المملكة العربية السعودية.</p>
+      </div>
+      <div>
+        <h4 style="font-size:.72rem;font-weight:700;color:#374151;margin:0 0 1rem;letter-spacing:.05em;text-transform:uppercase;">المنصة</h4>
+        <div style="display:flex;flex-direction:column;gap:.5rem;">
+          <a href="#features" class="nav-link" style="font-size:.83rem;">المميزات</a>
+          <a href="#pricing" class="nav-link" style="font-size:.83rem;">الأسعار والباقات</a>
+          <a href="#how" class="nav-link" style="font-size:.83rem;">كيف يعمل النظام</a>
+          <a href="#faq" class="nav-link" style="font-size:.83rem;">الأسئلة الشائعة</a>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:.72rem;font-weight:700;color:#374151;margin:0 0 1rem;letter-spacing:.05em;text-transform:uppercase;">التواصل</h4>
+        <div style="display:flex;flex-direction:column;gap:.5rem;">
+          <a href="#contact" class="nav-link" style="font-size:.83rem;">اتصلي بنا</a>
+          <span style="font-size:.78rem;color:#94A3B8;">marktning@onfirmedmarketing.com</span>
+          <span style="font-size:.78rem;color:#94A3B8;">920011445</span>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:.72rem;font-weight:700;color:#374151;margin:0 0 1rem;letter-spacing:.05em;text-transform:uppercase;">قانوني</h4>
+        <div style="display:flex;flex-direction:column;gap:.5rem;">
+          <span class="nav-link" style="font-size:.83rem;cursor:pointer;">سياسة الخصوصية</span>
+          <span class="nav-link" style="font-size:.83rem;cursor:pointer;">شروط الاستخدام</span>
+          <span class="nav-link" style="font-size:.83rem;cursor:pointer;">سياسة الاسترداد</span>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid #E2E8F0;padding-top:1.5rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;">
+      <p style="font-size:.75rem;color:#9CA3AF;margin:0;">© 2025 CONFIRMED. جميع الحقوق محفوظة.</p>
+      <div style="display:flex;align-items:center;gap:.75rem;font-size:.72rem;color:#9CA3AF;">
+        <span style="background:#DCFCE7;color:#15803D;padding:.2rem .625rem;border-radius:9999px;font-weight:700;">مرخص بالسعودية 🇸🇦</span>
+        <span>|</span><span>ZATCA متوافق</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div id="lm" class="overlay" style="display:none;" onclick="if(event.target===this)closeLogin()">
+  <div class="modal">
+    <button class="close-btn" onclick="closeLogin()">✕</button>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <div class="serif" style="font-size:1.3rem;font-weight:800;color:var(--green);">CONFIRMED</div>
+      <h2 style="font-size:1.2rem;font-weight:700;color:var(--text);margin:.5rem 0 .25rem;">تسجيل الدخول</h2>
+      <p style="font-size:.8rem;color:var(--muted);margin:0;">ادخلي بريدك الإلكتروني للحصول على رمز الدخول</p>
+    </div>
+    <form onsubmit="event.preventDefault();closeLogin();showToast('✓ تم إرسال رمز التحقق! تفقدي بريدك الإلكتروني.')">
+      <div style="margin-bottom:1rem;"><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">البريد الإلكتروني</label><input type="email" required placeholder="example@mail.com" style="width:100%;font-size:.875rem;padding:.75rem 1rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+      <button type="submit" class="btn-p" style="width:100%;padding:.875rem;font-size:.875rem;">إرسال رمز الدخول</button>
+    </form>
+    <p style="font-size:.78rem;color:var(--muted);text-align:center;margin-top:1rem;">لا يوجد لديك حساب؟ <button onclick="closeLogin();openReg()" style="color:var(--red);font-weight:700;background:none;border:none;cursor:pointer;font-size:.78rem;">سجّلي مجاناً</button></p>
+  </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div id="rm" class="overlay" style="display:none;" onclick="if(event.target===this)closeReg()">
+  <div class="modal">
+    <button class="close-btn" onclick="closeReg()">✕</button>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <div class="serif" style="font-size:1.3rem;font-weight:800;color:var(--green);">CONFIRMED</div>
+      <h2 style="font-size:1.2rem;font-weight:700;color:var(--text);margin:.5rem 0 .25rem;">تسجيل صالون جديد ✨</h2>
+      <p style="font-size:.8rem;color:var(--muted);margin:0;">ابدئي تجربتك المجانية لمدة ١٤ يوماً</p>
+    </div>
+    <form onsubmit="event.preventDefault();closeReg();showToast('✓ تم تسجيل صالونك! تفقدي بريدك لاستلام بيانات الدخول.')">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:.875rem;">
+        <div><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">اسم الصالون *</label><input type="text" required placeholder="صالون الجوري" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+        <div><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">المدينة *</label><select style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);cursor:pointer;"><option>الرياض</option><option>جدة</option><option>الدمام</option><option>مكة المكرمة</option><option>المدينة المنورة</option><option>أخرى</option></select></div>
+      </div>
+      <div style="margin-bottom:.875rem;"><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">البريد الإلكتروني *</label><input type="email" required placeholder="salon@example.com" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+      <div style="margin-bottom:.875rem;"><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">رقم الجوال *</label><input type="tel" required placeholder="05xxxxxxxx" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+      <div style="margin-bottom:1.25rem;"><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">اختاري الباقة</label><select style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);cursor:pointer;"><option>Starter – 199 ر.س / شهر</option><option selected>Pro – 399 ر.س / شهر (الأكثر طلباً)</option><option>Enterprise – تواصل معنا</option></select></div>
+      <button type="submit" class="btn-p" style="width:100%;padding:.875rem;font-size:.875rem;box-shadow:0 6px 20px rgba(255,90,95,.2);">إنشاء الحساب وبدء التجربة المجانية 🚀</button>
+      <p style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:.875rem;">بالتسجيل أنتِ توافقين على شروط الاستخدام وسياسة الخصوصية</p>
+    </form>
+  </div>
+</div>
+
+<div id="toast">✓ تم بنجاح!</div>
+
+<script>
+  // header scroll
+  addEventListener('scroll', function() {
+    document.getElementById('hdr').classList.toggle('scrolled', scrollY > 20);
+  });
+
+  // live clock
+  function fmtTime(d) {
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+  function fmtRel(d) {
+    var diff = Math.round((d - new Date()) / 60000);
+    if (diff <= 0) return 'الآن';
+    if (diff < 60) return 'بعد ' + diff + ' دقيقة';
+    var h = Math.floor(diff / 60), m = diff % 60;
+    return m ? 'بعد ' + h + 'س ' + m + 'د' : 'بعد ' + h + ' ساعة';
+  }
+  function tick() {
+    var n = new Date();
+    document.getElementById('clk').textContent = n.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    document.getElementById('today-lbl').textContent = n.toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long' });
+    var t1 = new Date(n.getTime() + 15 * 60000);
+    var t2 = new Date(n.getTime() + 48 * 60000);
+    var t3 = new Date(n.getTime() + 135 * 60000);
+    document.getElementById('t1t').textContent = fmtTime(t1);
+    document.getElementById('t1r').textContent = fmtRel(t1);
+    document.getElementById('t2t').textContent = fmtTime(t2);
+    document.getElementById('t2r').textContent = fmtRel(t2);
+    document.getElementById('t3t').textContent = fmtTime(t3);
+    document.getElementById('t3r').textContent = fmtRel(t3);
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // billing toggle
+  var prices = { s: { m: 199, y: 159 }, p: { m: 399, y: 319 } };
+  function setBill(b) {
+    document.getElementById('bm').classList.toggle('on', b === 'm');
+    document.getElementById('by').classList.toggle('on', b === 'y');
+    var lbl = b === 'm' ? 'شهرياً' : 'شهرياً (فوترة سنوية)';
+    document.getElementById('ps').textContent = prices.s[b];
+    document.getElementById('prs').textContent = lbl;
+    document.getElementById('pp').textContent = prices.p[b];
+    document.getElementById('prp').textContent = lbl;
+  }
+
+  // modals
+  function openLogin() { document.getElementById('lm').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  function closeLogin() { document.getElementById('lm').style.display = 'none'; document.body.style.overflow = ''; }
+  function openReg() { document.getElementById('rm').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  function closeReg() { document.getElementById('rm').style.display = 'none'; document.body.style.overflow = ''; }
+
+  // contact form
+  function submitCF(e) {
+    e.preventDefault();
+    document.getElementById('cf').style.display = 'none';
+    document.getElementById('cs').style.display = 'block';
+  }
+
+  // toast
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 3500);
+  }
+
+  // enterprise btn hover
+  var eb = document.getElementById('ent-btn');
+  if (eb) {
+    eb.addEventListener('mouseover', function() { this.style.background = 'var(--green)'; this.style.color = '#fff'; });
+    eb.addEventListener('mouseout', function() { this.style.background = 'transparent'; this.style.color = 'var(--green)'; });
+  }
+
+  // escape key
+  addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeLogin(); closeReg(); } });
+</script>
+</body>
+</html>

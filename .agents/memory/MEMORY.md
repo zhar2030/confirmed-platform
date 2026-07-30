@@ -1,0 +1,9 @@
+- [Super Admin Control Center](super-admin-build.md) — Enterprise admin rebuilt as 12-file modular system under src/components/admin/; sidebar layout with 9 sections replaces old 2710-line monolith.
+- [Accounting System Integration](accounting-integration.md) — Webhook push + API pull for Foodics/Marn/ZATCA/Odoo/Generic; adapters in handlers/accounting/; dedup by external_id; sync logs table.
+- [Customer Booking Portal](booking-portal.md) — /book/:slug public portal; any-staff availability uses ALL-staff-busy logic; provider_services seeded at startup via initProviderServices().
+- [Auth & Registration Flow](auth-registration.md) — OTP-only login (no passwords); provider registration calls POST /api/providers/register → DB directly; Brevo requires IP authorization per server.
+- [Email Configuration](email-config.md) — FROM_EMAIL=ahmedazhr23@gmail.com (Brevo account); ADMIN_EMAIL=u0u@hotmail.fr; SMTP fails, REST works; لا تستخدم Gmail/Hotmail كـ FROM.
+- [Platform Owner Account](owner-account.md) — username=u0u, email=u0u@hotmail.fr, role=owner في DB؛ isPlatformAdmin يُكتشف من role لا من username hardcoded.
+- [Multi-Tenant Frontend Wiring](multi-tenant-frontend.md) — Login toggle (OTP/staff-password) in LandingPage; /staff/accept route in App.tsx; ProviderDashboard uses getUnifiedHeaders + 402 wall; approvals tab gated by canReviewApprovals.
+- [WhatsApp Business Integration](whatsapp-integration.md) — booking flow collects 7 CRM fields only; NAME_COLLECT state added; prices/financial data never shown in WhatsApp messages.
+- [Production Server Structure](production-server.md) — frontend must go to /var/www/html (Apache DocumentRoot); /root/confirmed-server/public is NOT served by Apache.

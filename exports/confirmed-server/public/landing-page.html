@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CONFIRMED – نظام إدارة الصالونات في السعودية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root { --red:#FF5A5F; --green:#14332B; --cream:#F6F6F4; --border:#E9E7E2; --text:#1C1B18; --muted:#6E6A63; }
+    * { box-sizing: border-box; }
+    body { font-family:'Cairo',sans-serif; background:var(--cream); color:var(--text); margin:0; }
+    .serif { font-family:'Playfair Display',serif; }
+    header { position:sticky; top:0; z-index:50; transition:all .3s; background:transparent; }
+    header.scrolled { background:rgba(255,255,255,.93); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 1px 12px rgba(0,0,0,.06); }
+    details summary { list-style:none; cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+    details summary::-webkit-details-marker { display:none; }
+    .faq-plus { display:inline-block; transition:transform .2s; color:var(--red); font-size:1.3rem; font-weight:700; flex-shrink:0; margin-right:1rem; }
+    details[open] .faq-plus { transform:rotate(45deg); }
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:100; display:flex; align-items:center; justify-content:center; padding:1rem; }
+    .modal { background:#fff; border-radius:1.5rem; padding:2rem; width:100%; max-width:460px; max-height:90vh; overflow-y:auto; position:relative; }
+    .close-btn { position:absolute; top:.875rem; left:.875rem; width:2rem; height:2rem; border-radius:50%; border:1px solid var(--border); background:var(--cream); cursor:pointer; font-size:1rem; color:var(--muted); display:flex; align-items:center; justify-content:center; }
+    input, select, textarea { outline:none; font-family:'Cairo',sans-serif; }
+    input:focus, select:focus, textarea:focus { border-color:var(--red)!important; }
+    .btn-p { background:var(--red); color:#fff; border-radius:.75rem; font-weight:700; cursor:pointer; border:none; transition:background .2s; display:inline-block; text-align:center; }
+    .btn-p:hover { background:#E04B50; }
+    .btn-o { border:2px solid var(--red); color:var(--red); border-radius:.75rem; font-weight:700; cursor:pointer; background:transparent; transition:all .2s; display:inline-block; text-align:center; }
+    .btn-o:hover { background:var(--red); color:#fff; }
+    .card { transition:all .3s; border:1px solid var(--border); border-radius:1rem; padding:1.5rem; background:#fff; }
+    .card:hover { box-shadow:0 20px 40px rgba(0,0,0,.09); transform:translateY(-2px); }
+    .card:hover .ic { background:var(--red)!important; color:#fff!important; }
+    .ic { transition:all .3s; width:2.75rem; height:2.75rem; border-radius:.75rem; background:#FFF0F0; color:var(--red); display:flex; align-items:center; justify-content:center; margin-bottom:1.1rem; font-size:1.2rem; }
+    .bill-btn { border-radius:9999px; padding:.45rem .875rem; font-size:.75rem; font-weight:700; cursor:pointer; border:none; background:transparent; color:var(--muted); transition:all .2s; }
+    .bill-btn.on { background:var(--red); color:#fff; }
+    #toast { position:fixed; bottom:2rem; right:2rem; background:var(--green); color:#fff; border-radius:1rem; padding:.875rem 1.5rem; font-size:.85rem; font-weight:700; z-index:300; transform:translateY(100px); opacity:0; transition:all .35s; pointer-events:none; }
+    #toast.show { transform:translateY(0); opacity:1; }
+    a { text-decoration:none; }
+    .nav-link { font-size:.875rem; font-weight:600; color:rgba(28,27,24,.8); transition:color .2s; }
+    .nav-link:hover { color:var(--red); }
+    .feat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:1.75rem; }
+    .step-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:2rem; max-width:62rem; margin:0 auto; }
+    .price-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(17rem,1fr)); gap:2rem; max-width:72rem; margin:0 auto; align-items:stretch; }
+    .test-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(17rem,1fr)); gap:2rem; }
+    .contact-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(18rem,1fr)); gap:3rem; align-items:start; }
+    .foot-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(11rem,1fr)); gap:2.5rem; margin-bottom:3rem; }
+    .hero-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; }
+    @media(max-width:1023px){ .hero-grid { grid-template-columns:1fr; } }
+    ul.feat-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.75rem; font-size:.85rem; }
+    ul.feat-list li { display:flex; align-items:flex-start; gap:.5rem; }
+    ul.feat-list li::before { content:'✓'; color:var(--red); margin-top:.1rem; flex-shrink:0; }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header id="hdr">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;height:5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+    <button onclick="scrollTo({top:0,behavior:'smooth'})" style="background:none;border:none;cursor:pointer;">
+      <img src="data:image/png;base64,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" alt="CONFIRMED" style="height:2.75rem;width:auto;" />
+    </button>
+    <nav style="display:flex;gap:1.25rem;align-items:center;">
+      <a href="#features" class="nav-link">المميزات</a>
+      <a href="#how" class="nav-link">كيف يعمل</a>
+      <a href="#pricing" class="nav-link">الأسعار</a>
+      <a href="#faq" class="nav-link">الأسئلة الشائعة</a>
+      <a href="#contact" class="nav-link">اتصلي بنا</a>
+    </nav>
+    <div style="display:flex;gap:.75rem;">
+      <button onclick="openLogin()" class="btn-o" style="padding:.6rem 1.1rem;font-size:.85rem;">🔑 تسجيل الدخول</button>
+      <button onclick="openReg()" class="btn-p" style="padding:.6rem 1.1rem;font-size:.85rem;">✨ ابدئي مجاناً</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section style="padding:5rem 0;background:#fff;overflow:hidden;">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div class="hero-grid">
+      <!-- Text -->
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:.5rem;padding:.375rem .875rem;border-radius:9999px;background:#FFF0F0;border:1px solid var(--border);font-size:.75rem;font-weight:700;color:var(--red);margin-bottom:1.25rem;">
+          <span style="width:.45rem;height:.45rem;border-radius:50%;background:#10B981;display:inline-block;"></span>
+          مصمّم خصيصاً لصالونات ومراكز السبا في السعودية 🇸🇦
+        </div>
+        <h1 class="serif" style="font-size:clamp(2rem,3.5vw,3rem);color:var(--green);font-weight:700;line-height:1.25;margin-bottom:1.25rem;">
+          صالونك يشتغل بنظام..<br/>
+          وأنتِ تركّزين على <span style="color:var(--red);">الإبداع</span>
+        </h1>
+        <p style="font-size:1.05rem;color:var(--muted);line-height:1.8;max-width:36rem;margin-bottom:1.75rem;">
+          نظام CONFIRMED السحابي يدير الحجوزات، الكاشير ونقاط البيع، الفواتير الإلكترونية المعتمدة وقاعدة بيانات عميلاتك من مكان واحد — عشان يقل الغياب عن المواعيد، وتزيد مبيعاتك بنسبة تفوق 30٪.
+        </p>
+        <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+          <a href="#pricing" class="btn-p" style="padding:1rem 2rem;font-size:.95rem;box-shadow:0 8px 24px rgba(255,90,95,.25);">ابدئي تجربتك المجانية (١٤ يوماً)</a>
+          <a href="#contact" class="btn-o" style="padding:1rem 2rem;font-size:.95rem;">اطلبي عرضاً توضيحياً</a>
+        </div>
+        <div style="display:flex;gap:1.5rem;font-size:.85rem;color:var(--muted);">
+          <span>✅ لا يتطلب بطاقة ائتمانية</span>
+          <span>✅ إلغاء في أي وقت</span>
+        </div>
+      </div>
+      <!-- Widget -->
+      <div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.11);padding:1.75rem;max-width:26rem;margin:0 auto;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;right:0;left:0;height:4px;background:var(--red);border-radius:1.5rem 1.5rem 0 0;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">
+            <div>
+              <h3 style="font-weight:700;font-size:1rem;color:var(--text);margin:0 0 .2rem;">جدول مواعيد اليوم</h3>
+              <p style="font-size:.72rem;color:var(--muted);margin:0;" id="today-lbl">—</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:.4rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;padding:.35rem .75rem;">
+              <span style="width:.45rem;height:.45rem;border-radius:50%;background:#10B981;display:inline-block;"></span>
+              <span id="clk" style="font-family:monospace;font-weight:700;font-size:.78rem;color:var(--text);">00:00:00</span>
+            </div>
+          </div>
+          <!-- Slot 1 -->
+          <div style="display:flex;flex-direction:column;gap:.625rem;">
+            <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem;border-radius:1rem;background:var(--cream);border:1px solid var(--border);">
+              <div style="min-width:3.25rem;text-align:center;">
+                <p id="t1t" style="font-family:monospace;font-weight:700;font-size:.7rem;color:var(--red);margin:0;">—</p>
+                <p id="t1r" style="font-size:.6rem;color:var(--muted);margin:.1rem 0 0;">—</p>
+              </div>
+              <div style="flex:1;">
+                <p style="font-weight:700;font-size:.875rem;color:var(--text);margin:0;">سارة المطيري</p>
+                <p style="font-size:.72rem;color:var(--muted);margin:0;">قص وسشوار • أمل</p>
+              </div>
+              <span style="background:#ECFDF5;color:#065F46;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:9999px;white-space:nowrap;">مؤكد</span>
+            </div>
+            <!-- Slot 2 -->
+            <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem;border-radius:1rem;background:var(--cream);border:1px solid var(--border);">
+              <div style="min-width:3.25rem;text-align:center;">
+                <p id="t2t" style="font-family:monospace;font-weight:700;font-size:.7rem;color:var(--red);margin:0;">—</p>
+                <p id="t2r" style="font-size:.6rem;color:var(--muted);margin:.1rem 0 0;">—</p>
+              </div>
+              <div style="flex:1;">
+                <p style="font-weight:700;font-size:.875rem;color:var(--text);margin:0;">نوف العتيبي</p>
+                <p style="font-size:.72rem;color:var(--muted);margin:0;">عناية بالأظافر • شهد</p>
+              </div>
+              <span style="background:#ECFDF5;color:#065F46;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:9999px;white-space:nowrap;">مؤكد</span>
+            </div>
+            <!-- Slot 3 -->
+            <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem;border-radius:1rem;background:#FFF0F0;border:1px solid rgba(255,90,95,.2);">
+              <div style="min-width:3.25rem;text-align:center;">
+                <p id="t3t" style="font-family:monospace;font-weight:700;font-size:.7rem;color:var(--red);margin:0;">—</p>
+                <p id="t3r" style="font-size:.6rem;color:var(--red);margin:.1rem 0 0;">—</p>
+              </div>
+              <div style="flex:1;">
+                <p style="font-weight:700;font-size:.875rem;color:var(--text);margin:0;">حصة الكثيري</p>
+                <p style="font-size:.72rem;color:var(--red);margin:0;">جلسة سبا ٩٠ دقيقة • أونلاين</p>
+              </div>
+              <span style="background:var(--red);color:#fff;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:9999px;">جديد</span>
+            </div>
+          </div>
+          <!-- Stats -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.625rem;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);text-align:center;">
+            <div style="padding:.625rem;background:var(--cream);border-radius:.75rem;border:1px solid var(--border);">
+              <p class="serif" style="font-size:1.3rem;font-weight:700;color:var(--red);margin:0;">7</p>
+              <p style="font-size:.6rem;color:var(--muted);margin:.1rem 0 0;line-height:1.3;">حجوزات اليوم</p>
+            </div>
+            <div style="padding:.625rem;background:var(--cream);border-radius:.75rem;border:1px solid var(--border);">
+              <p class="serif" style="font-size:1.3rem;font-weight:700;color:#F59E0B;margin:0;">4.9 ★</p>
+              <p style="font-size:.6rem;color:var(--muted);margin:.1rem 0 0;line-height:1.3;">رضا العملاء</p>
+            </div>
+            <div style="padding:.625rem;background:var(--cream);border-radius:.75rem;border:1px solid var(--border);">
+              <p class="serif" style="font-size:1.3rem;font-weight:700;color:#059669;margin:0;">98٪</p>
+              <p style="font-size:.6rem;color:var(--muted);margin:.1rem 0 0;line-height:1.3;">نسبة الحضور</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TRUST BAR ===== -->
+<div style="padding:2.5rem 0;background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;text-align:center;">
+    <p style="font-size:.72rem;font-weight:700;letter-spacing:.1em;color:var(--red);text-transform:uppercase;margin:0 0 1rem;">تثق بنا صالونات ومراكز سبا كبرى في المملكة العربية السعودية 🇸🇦</p>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2.5rem;font-family:'Playfair Display',serif;color:var(--muted);font-size:1.05rem;">
+      <span class="nav-link" style="font-weight:700;">لُجَين سبا</span>
+      <span class="nav-link" style="font-weight:700;">مرايا بيوتي لاونج</span>
+      <span class="nav-link" style="font-weight:700;">دار الغيم للعناية</span>
+      <span class="nav-link" style="font-weight:700;">تالة لاونج</span>
+      <span class="nav-link" style="font-weight:700;">وتين التجميل</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FEATURES ===== -->
+<section id="features" style="padding:5rem 0;background:#fff;">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div style="text-align:center;max-width:46rem;margin:0 auto 3.5rem;">
+      <h2 class="serif" style="font-size:clamp(1.75rem,3vw,2.5rem);color:var(--green);font-weight:700;margin:0 0 1rem;">كل الأدوات اللي تحتاجينها لإدارة صالونك باحترافية كاملة</h2>
+      <p style="font-size:.95rem;color:var(--muted);line-height:1.75;margin:0;">بنينا نظام CONFIRMED ليلبي تطلعات رائدات الأعمال في مجال التجميل، ليريحك من جداول الإكسل والواتساب المشتت.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="card"><div class="ic">📅</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">إدارة الحجوزات والتقويم</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">تقويم تفاعلي مرن يسجل الحجوزات، يعيد جدولتها بالسحب والإفلات، ويظهر أوقات انشغال وخلو خبيرات التجميل بدقة.</p></div>
+      <div class="card"><div class="ic">🧾</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">نقاط البيع والفاتورة الإلكترونية</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">كاشير مبيعات متكامل للخدمات والمنتجات، يدعم ضريبة القيمة المضافة ومستوفٍ لمتطلبات هيئة الزكاة والضريبة والجمارك (ZATCA).</p></div>
+      <div class="card"><div class="ic">📦</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">إدارة المخزون والتنبيهات</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">تتبعي المنتجات والمواد الاستهلاكية. تنبيهات ذكية تخبرك بنقص المنتجات قبل نفادها لتتفادي أي انقطاع في الخدمات.</p></div>
+      <div class="card"><div class="ic">👤</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">إدارة العميلات وعلاقاتهن (CRM)</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">ملف خاص لكل عميلة يشمل تفضيلات صبغ الشعر، حساسية البشرة، عدد الزيارات، ومجموع مبيعاتها لمكافأتها على ولائها.</p></div>
+      <div class="card"><div class="ic">📣</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">أدوات تسويق وعروض ذكية</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">أرسلي حملات تسويق آلية ومخصصة عبر الواتساب والـ SMS للعميلات في المناسبات، وصممي كوبونات خصم لزيادة الإقبال.</p></div>
+      <div class="card"><div class="ic">💝</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">بطاقات الهدايا والعضويات</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">أنشئي بطاقات هدايا رقمية واشتراكات خاصة لعميلاتك المميزات، وعززي برامج الولاء لزيادة تكرار الزيارات.</p></div>
+      <div class="card"><div class="ic">📊</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">تقارير الأداء والإيرادات</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">تقارير أسبوعية وشهرية تفصيلية عن الإيرادات وأداء الموظفات وأكثر الخدمات مبيعاً لاتخاذ قرارات مدروسة.</p></div>
+      <div class="card"><div class="ic">🔔</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">تذكيرات تلقائية للمواعيد</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">تذكيرات آلية للعميلات قبل ٢٤ و٣ ساعات من الموعد عبر الواتساب والـ SMS لتقليل نسبة الغياب.</p></div>
+      <div class="card"><div class="ic">🌐</div><h3 class="serif" style="font-size:1.05rem;font-weight:700;color:var(--text);margin:0 0 .5rem;">صفحة حجز ذاتي مخصصة</h3><p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">صفحة أنيقة بهوية صالونك تتيح للعميلات الحجز على مدار الساعة دون الحاجة للتواصل معك مباشرةً.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section id="how" style="padding:5rem 0;background:var(--cream);">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div style="text-align:center;max-width:40rem;margin:0 auto 3.5rem;">
+      <h2 class="serif" style="font-size:clamp(1.75rem,3vw,2.5rem);color:var(--green);font-weight:700;margin:0 0 .75rem;">ابدئي في ٣ خطوات بسيطة</h2>
+      <p style="color:var(--muted);margin:0;">من إنشاء الحساب إلى تفعيل الحجوزات الأونلاين خلال دقائق معدودة.</p>
+    </div>
+    <div class="step-grid">
+      <div style="background:rgba(255,255,255,.87);border:1px solid var(--border);border-radius:1.25rem;padding:2rem;">
+        <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">١</div>
+        <h3 class="serif" style="font-size:1.1rem;font-weight:700;color:var(--text);margin:0 0 .625rem;">إنشاء حسابك وتخصيصه</h3>
+        <p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">سجّلي صالونك، أدخلي قائمة الخدمات والأسعار، وحددي خبيرات التجميل وساعات عملهن بسهولة تامة.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.87);border:1px solid var(--border);border-radius:1.25rem;padding:2rem;">
+        <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">٢</div>
+        <h3 class="serif" style="font-size:1.1rem;font-weight:700;color:var(--text);margin:0 0 .625rem;">تفعيل رابط الحجز الذاتي</h3>
+        <p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">سيكون لديك صفحة حجوزات أنيقة مخصصة بهوية صالونك لتقوم عميلاتك بالحجز واختيار الخدمات والوقت المناسب.</p>
+      </div>
+      <div style="background:rgba(255,255,255,.87);border:1px solid var(--border);border-radius:1.25rem;padding:2rem;">
+        <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">٣</div>
+        <h3 class="serif" style="font-size:1.1rem;font-weight:700;color:var(--text);margin:0 0 .625rem;">تشغيل الكاشير والتذكيرات</h3>
+        <p style="font-size:.83rem;color:var(--muted);line-height:1.7;margin:0;">يبدأ النظام تلقائياً بإرسال رسائل تذكير للعميلات قبل موعدهن، وتتمكنين من محاسبتهن وإصدار فواتير ذكية.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section id="pricing" style="padding:5rem 0;background:var(--cream);">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div style="text-align:center;max-width:48rem;margin:0 auto 3.5rem;">
+      <h2 class="serif" style="font-size:clamp(1.75rem,3vw,2.5rem);color:var(--green);font-weight:700;margin:0 0 .75rem;">باقات تناسب جميع الصالونات ومراكز السبا</h2>
+      <p style="color:var(--muted);margin:0 0 1.5rem;">لا توجد رسوم خفية. جربي أي باقة مجاناً لمدة ١٤ يوماً دون الحاجة لبطاقة ائتمان.</p>
+      <div style="display:inline-flex;background:#fff;border:1px solid var(--border);border-radius:9999px;padding:.25rem;box-shadow:inset 0 1px 4px rgba(0,0,0,.06);">
+        <button class="bill-btn on" id="bm" onclick="setBill('m')">الدفع شهرياً</button>
+        <button class="bill-btn" id="by" onclick="setBill('y')">الدفع سنوياً (توفير ٢٠٪)</button>
+      </div>
+    </div>
+    <div class="price-grid">
+      <!-- Starter -->
+      <div style="border:1px solid var(--border);border-radius:1.5rem;padding:2rem;background:#fff;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 4px 20px rgba(0,0,0,.05);">
+        <div>
+          <h3 class="serif" style="font-size:1.2rem;font-weight:700;color:var(--green);margin:0 0 .375rem;">Starter</h3>
+          <p style="font-size:.75rem;color:var(--muted);margin:0 0 1.25rem;">للصالونات الصغيرة والناشئة</p>
+          <div style="margin-bottom:1.25rem;">
+            <span class="serif" id="ps" style="font-size:1.75rem;font-weight:700;color:var(--red);">199</span>
+            <span style="font-size:.75rem;color:var(--muted);font-weight:600;margin-right:.25rem;"> ر.س <span id="prs">شهرياً</span></span>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:1.25rem 0;" />
+          <ul class="feat-list">
+            <li>حتى ٣ خبيرات تجميل</li>
+            <li>جدول المواعيد وتقويم الحجوزات</li>
+            <li>صفحة حجز ذاتي مخصصة</li>
+            <li>تذكيرات واتساب تلقائية</li>
+            <li>قاعدة بيانات العميلات</li>
+            <li>تقارير شهرية بسيطة</li>
+          </ul>
+        </div>
+        <div style="padding-top:1.75rem;">
+          <button onclick="openReg()" class="btn-o" style="width:100%;padding:.875rem;font-size:.875rem;">ابدئي تجربتك المجانية</button>
+        </div>
+      </div>
+      <!-- Pro -->
+      <div style="border:2px solid var(--red);border-radius:1.5rem;padding:2rem;background:#fff;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 8px 32px rgba(255,90,95,.14);position:relative;">
+        <span style="position:absolute;top:-1rem;right:1.25rem;background:var(--red);color:#fff;font-size:.68rem;font-weight:700;padding:.25rem .875rem;border-radius:9999px;">الباقة الأكثر طلباً واختياراً</span>
+        <div>
+          <h3 class="serif" style="font-size:1.2rem;font-weight:700;color:var(--green);margin:0 0 .375rem;">Pro</h3>
+          <p style="font-size:.75rem;color:var(--muted);margin:0 0 1.25rem;">للصالونات المتوسطة والنامية</p>
+          <div style="margin-bottom:1.25rem;">
+            <span class="serif" id="pp" style="font-size:1.75rem;font-weight:700;color:var(--red);">399</span>
+            <span style="font-size:.75rem;color:var(--muted);font-weight:600;margin-right:.25rem;"> ر.س <span id="prp">شهرياً</span></span>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:1.25rem 0;" />
+          <ul class="feat-list">
+            <li>حتى ١٠ خبيرات تجميل</li>
+            <li>جميع مميزات Starter</li>
+            <li>نقاط البيع والفاتورة الإلكترونية (ZATCA)</li>
+            <li>إدارة المخزون والمنتجات</li>
+            <li>تقارير مفصلة وإحصاءات متقدمة</li>
+            <li>بطاقات الهدايا والعضويات</li>
+            <li>حملات تسويقية عبر SMS</li>
+            <li>دعم فني أولوي ٧/٢٤</li>
+          </ul>
+        </div>
+        <div style="padding-top:1.75rem;">
+          <button onclick="openReg()" class="btn-p" style="width:100%;padding:.875rem;font-size:.875rem;box-shadow:0 6px 20px rgba(255,90,95,.22);">ابدئي تجربتك المجانية</button>
+        </div>
+      </div>
+      <!-- Enterprise -->
+      <div style="border:1px solid var(--border);border-radius:1.5rem;padding:2rem;background:#fff;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 4px 20px rgba(0,0,0,.05);">
+        <div>
+          <h3 class="serif" style="font-size:1.2rem;font-weight:700;color:var(--green);margin:0 0 .375rem;">Enterprise</h3>
+          <p style="font-size:.75rem;color:var(--muted);margin:0 0 1.25rem;">لسلاسل الصالونات والمؤسسات الكبرى</p>
+          <div style="margin-bottom:.5rem;">
+            <span class="serif" style="font-size:1.6rem;font-weight:700;color:var(--green);">تواصل معنا</span>
+          </div>
+          <p style="font-size:.72rem;color:var(--muted);margin:0 0 1.25rem;">تخصيص كامل وحلول مخصصة</p>
+          <hr style="border:none;border-top:1px solid var(--border);margin:1.25rem 0;" />
+          <ul class="feat-list">
+            <li>عدد غير محدود من الخبيرات والفروع</li>
+            <li>جميع مميزات Pro</li>
+            <li>لوحة تحكم مركزية لجميع الفروع</li>
+            <li>تكاملات API مخصصة وERP</li>
+            <li>تدريب ونقل بيانات مجاني</li>
+            <li>مدير حساب مخصص</li>
+          </ul>
+        </div>
+        <div style="padding-top:1.75rem;">
+          <a href="#contact" id="ent-btn" style="display:block;width:100%;padding:.875rem;font-size:.875rem;border:2px solid var(--green);color:var(--green);border-radius:.75rem;font-weight:700;text-align:center;cursor:pointer;background:transparent;transition:all .2s;">اطلبي عرضاً توضيحياً</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section style="padding:5rem 0;background:#fff;">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div style="text-align:center;max-width:40rem;margin:0 auto 3.5rem;">
+      <h2 class="serif" style="font-size:clamp(1.75rem,3vw,2.5rem);color:var(--green);font-weight:700;margin:0 0 .75rem;">صاحبات صالونات يتكلمن عن CONFIRMED</h2>
+      <p style="font-size:.875rem;color:var(--muted);margin:0;">نحن نفخر بالنمو مع عائلتنا المتنامية من صالونات التجميل في السعودية.</p>
+    </div>
+    <div class="test-grid">
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:1.5rem;padding:2rem;display:flex;flex-direction:column;justify-content:space-between;gap:1.5rem;">
+        <p style="font-size:.9rem;color:rgba(28,27,24,.9);font-style:italic;line-height:1.8;margin:0;">"قبل CONFIRMED كنا نواجه مشكلة كبيرة في غياب العميلات أو تأخرهن عن المواعيد، مما يؤثر على دخل الصالون. الآن بفضل تذكيرات الواتساب التلقائية انخفضت نسبة الغياب لقرابة الصفر!"</p>
+        <div style="display:flex;align-items:center;gap:.75rem;padding-top:1rem;border-top:1px solid var(--border);">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:.875rem;flex-shrink:0;">ع</div>
+          <div><h4 style="font-weight:700;font-size:.875rem;color:var(--text);margin:0 0 .15rem;">عهود الشلوي</h4><p style="font-size:.7rem;color:var(--muted);margin:0;">مالكة صالون عهود بيوتي لاونج - الرياض</p></div>
+        </div>
+      </div>
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:1.5rem;padding:2rem;display:flex;flex-direction:column;justify-content:space-between;gap:1.5rem;">
+        <p style="font-size:.9rem;color:rgba(28,27,24,.9);font-style:italic;line-height:1.8;margin:0;">"نقاط البيع والفواتير الإلكترونية سريعة وممتازة، النظام مرخص ومطابق لمتطلبات هيئة الزكاة والضريبة والجمارك والتقرير المالي أسبوعي ريحنا كثير في حساب الأرباح ونسب الموظفات."</p>
+        <div style="display:flex;align-items:center;gap:.75rem;padding-top:1rem;border-top:1px solid var(--border);">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:.875rem;flex-shrink:0;">ن</div>
+          <div><h4 style="font-weight:700;font-size:.875rem;color:var(--text);margin:0 0 .15rem;">نورة الفهيد</h4><p style="font-size:.7rem;color:var(--muted);margin:0;">مديرة سبا ومركز العناية بالبشرة - جدة</p></div>
+        </div>
+      </div>
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:1.5rem;padding:2rem;display:flex;flex-direction:column;justify-content:space-between;gap:1.5rem;">
+        <p style="font-size:.9rem;color:rgba(28,27,24,.9);font-style:italic;line-height:1.8;margin:0;">"صفحة الحجز الذاتي بهوية صالوننا ريحت عميلاتنا، صاروا يحجزون بالليل والشارع مسكر وحنا نايمين، ونجي الصبح نلقى الجدول مليان خدمات ممتازة جداً!"</p>
+        <div style="display:flex;align-items:center;gap:.75rem;padding-top:1rem;border-top:1px solid var(--border);">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Playfair Display',serif;font-weight:700;font-size:.875rem;flex-shrink:0;">م</div>
+          <div><h4 style="font-weight:700;font-size:.875rem;color:var(--text);margin:0 0 .15rem;">منى القحطاني</h4><p style="font-size:.7rem;color:var(--muted);margin:0;">صاحبة مركز تالة سبا النسائي - الدمام</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq" style="padding:5rem 0;background:var(--cream);">
+  <div style="max-width:52rem;margin:0 auto;padding:0 1.5rem;">
+    <div style="text-align:center;margin-bottom:3.5rem;">
+      <h2 class="serif" style="font-size:clamp(1.75rem,3vw,2.5rem);color:var(--green);font-weight:700;margin:0 0 .75rem;">الأسئلة الشائعة</h2>
+      <p style="font-size:.875rem;color:var(--muted);margin:0;">كل ما تودين معرفته حول نظام CONFIRMED لإدارة الصالونات</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <details style="background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+        <summary style="font-weight:700;color:var(--green);font-size:.9rem;"><span>هل الفاتورة الإلكترونية الصادرة معتمدة رسميًا؟</span><span class="faq-plus">+</span></summary>
+        <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.8;">نعم بالتأكيد، نظام CONFIRMED مهيأ ومتطابق بالكامل مع شروط هيئة الزكاة والضريبة والجمارك (المرحلة الأولى والمرحلة الثانية للربط والتكامل)، ويقوم بإصدار فاتورة إلكترونية مبسطة تحتوي على الـ QR Code المطلوب نظاماً.</p>
+      </details>
+      <details style="background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+        <summary style="font-weight:700;color:var(--green);font-size:.9rem;"><span>هل أحتاج إلى شراء أجهزة خاصة لاستخدام CONFIRMED؟</span><span class="faq-plus">+</span></summary>
+        <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.8;">لا، نظام CONFIRMED سحابي بالكامل. يمكنك تشغيله من أي جهاز متصل بالإنترنت—سواء كان آيباد، تابلت، جوال، أو كمبيوتر مكتبي عادي، ولا يتطلب تركيب برمجيات معقدة.</p>
+      </details>
+      <details style="background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+        <summary style="font-weight:700;color:var(--green);font-size:.9rem;"><span>هل تدعمون نقل العميلات والبيانات من نظام قديم؟</span><span class="faq-plus">+</span></summary>
+        <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.8;">نعم، فريق دعم CONFIRMED يساعدك مجاناً في استيراد ونقل قائمة عميلاتك، وقائمة الخدمات والأسعار من ملفات Excel أو أي نظام قديم لتبدئي العمل دون أي تشتت أو ضياع للبيانات.</p>
+      </details>
+      <details style="background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+        <summary style="font-weight:700;color:var(--green);font-size:.9rem;"><span>كيف يعمل تذكير الواتساب والـ SMS؟</span><span class="faq-plus">+</span></summary>
+        <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.8;">بمجرد تأكيد الحجز، يقوم النظام تلقائياً بجدولة رسائل مخصصة تذهب لجوال العميلة قبل الموعد بـ ٢٤ ساعة وتنبيه إضافي قبل الموعد بـ ٣ ساعات لمساعدتها في الحضور وتسهيل تأكيد أو إلغاء الحجز.</p>
+      </details>
+      <details style="background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.25rem;">
+        <summary style="font-weight:700;color:var(--green);font-size:.9rem;"><span>هل يمكنني تجربة النظام قبل الدفع؟</span><span class="faq-plus">+</span></summary>
+        <p style="margin:.75rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.8;">بالتأكيد! جميع باقاتنا تأتي مع تجربة مجانية لمدة ١٤ يوماً كاملة بدون أي التزام أو الحاجة لإدخال بيانات بطاقة ائتمانية. جربي النظام كاملاً وقرري بحرية تامة.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONTACT ===== -->
+<section id="contact" style="padding:5rem 0;background:#fff;border-top:1px solid var(--border);">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div class="contact-grid">
+      <div>
+        <span style="font-size:.7rem;font-weight:700;color:var(--red);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:1rem;">استشيري خبيراتنا</span>
+        <h2 class="serif" style="font-size:clamp(1.5rem,3vw,2.25rem);color:var(--green);font-weight:700;margin:0 0 1rem;line-height:1.35;">اطلبي عرضاً توضيحياً مجاناً وجرّبي نظام CONFIRMED</h2>
+        <p style="color:var(--muted);line-height:1.8;margin:0 0 1.5rem;">سيتواصل معك فريقنا لمساعدتك وتزويدك ببيانات الدخول، وشرح الميزات الملائمة لصالونك.</p>
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div style="display:flex;align-items:center;gap:.875rem;">
+            <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:#FFF0F0;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">✉️</div>
+            <div><p style="font-size:.7rem;color:var(--muted);margin:0 0 .15rem;">راسلنا على البريد الإلكتروني</p><p style="font-size:.875rem;font-weight:700;color:var(--text);margin:0;">marktning@onfirmedmarketing.com</p></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.875rem;">
+            <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:#FFF0F0;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📞</div>
+            <div><p style="font-size:.7rem;color:var(--muted);margin:0 0 .15rem;">رقم الاتصال المباشر وواتساب</p><p style="font-size:.875rem;font-weight:700;color:var(--text);margin:0;">920011445</p></div>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--cream);border:1px solid var(--border);border-radius:1.5rem;padding:2rem;">
+        <div id="cf">
+          <form onsubmit="submitCF(event)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:.875rem;">
+              <div><label style="display:block;font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">اسمك الكريم *</label><input type="text" required placeholder="سارة المطيري" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:#fff;border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+              <div><label style="display:block;font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">نوع النشاط *</label><select style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:#fff;border:1px solid var(--border);border-radius:.75rem;color:var(--text);cursor:pointer;"><option>صالون نسائي متكامل</option><option>صالون شعر وأظافر</option><option>مركز سبا ومساج</option><option>مركز وعيادة تجميل</option><option>خدمات منزلية</option></select></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:.875rem;">
+              <div><label style="display:block;font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">البريد الإلكتروني *</label><input type="email" required placeholder="example@mail.com" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:#fff;border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+              <div><label style="display:block;font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">رقم جوال التواصل *</label><input type="tel" required placeholder="05xxxxxxxx" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:#fff;border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+            </div>
+            <div style="margin-bottom:1.1rem;"><label style="display:block;font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">أخبرينا عن صالونك (اختياري)</label><textarea rows="3" placeholder="كم عدد الموظفات لديك؟ وما هي الصعوبات الحالية؟" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:#fff;border:1px solid var(--border);border-radius:.75rem;color:var(--text);resize:vertical;font-family:'Cairo',sans-serif;"></textarea></div>
+            <button type="submit" class="btn-p" style="width:100%;padding:.875rem;font-size:.875rem;box-shadow:0 6px 20px rgba(255,90,95,.18);">إرسال طلب العرض التجريبي مجاناً</button>
+          </form>
+        </div>
+        <div id="cs" style="display:none;text-align:center;padding:2rem 0;">
+          <div style="width:3.5rem;height:3.5rem;border-radius:50%;background:#FFF0F0;color:var(--red);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.75rem;">✓</div>
+          <h3 class="serif" style="font-size:1.4rem;font-weight:700;color:var(--green);margin:0 0 .75rem;">شكراً لاهتمامك بـ CONFIRMED ✓</h3>
+          <p style="font-size:.875rem;color:var(--muted);line-height:1.75;margin:0 0 1rem;">تم استلام طلبك بنجاح. سنتواصل معك خلال ٢٤ ساعة لإعداد نسختك التجريبية.</p>
+          <button onclick="document.getElementById('cs').style.display='none';document.getElementById('cf').style.display='block'" style="font-size:.75rem;font-weight:700;color:var(--red);text-decoration:underline;background:none;border:none;cursor:pointer;">إرسال طلب آخر</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer style="background:#F8FAFC;color:#64748B;padding:4rem 0 2rem;border-top:1px solid #E2E8F0;">
+  <div style="max-width:80rem;margin:0 auto;padding:0 1.5rem;">
+    <div class="foot-grid">
+      <!-- العمود 1: الشعار -->
+      <div>
+        <img src="data:image/png;base64,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" alt="CONFIRMED" style="height:3rem;width:auto;object-fit:contain;margin-bottom:.75rem;" />
+        <p style="font-size:.78rem;color:#94A3B8;line-height:1.7;margin:0;">منصة سحابية سعودية متكاملة لإدارة صالونات التجميل ومراكز العناية والسبا النسائية والمنزلية وتسهيل المواعيد.</p>
+      </div>
+      <!-- العمود 2: المميزات الرئيسية -->
+      <div>
+        <h4 style="font-size:.72rem;font-weight:700;color:#14332B;margin:0 0 1rem;letter-spacing:.05em;text-transform:uppercase;">المميزات الرئيسية</h4>
+        <div style="display:flex;flex-direction:column;gap:.5rem;">
+          <a href="#features" class="nav-link" style="font-size:.78rem;">إدارة الحجوزات والمواعيد</a>
+          <a href="#features" class="nav-link" style="font-size:.78rem;">نظام نقاط البيع POS</a>
+          <a href="#features" class="nav-link" style="font-size:.78rem;">إدارة الموظفات والعملاء</a>
+          <a href="#features" class="nav-link" style="font-size:.78rem;">التقارير الذكية والمحاسبة</a>
+        </div>
+      </div>
+      <!-- العمود 3: بوابة الشركاء -->
+      <div>
+        <h4 style="font-size:.72rem;font-weight:700;color:#14332B;margin:0 0 1rem;letter-spacing:.05em;text-transform:uppercase;">بوابة الشركاء</h4>
+        <div style="display:flex;flex-direction:column;gap:.5rem;">
+          <button onclick="openLogin()" style="background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:.3rem;font-size:.78rem;font-weight:600;color:#FF5A5F;font-family:inherit;">
+            🔒 <span>دخول الشركاء والموظفين</span>
+          </button>
+          <button onclick="openReg()" style="background:none;border:none;padding:0;cursor:pointer;font-size:.78rem;color:#64748B;font-family:inherit;text-align:right;">تسجيل صالون جديد</button>
+          <span class="nav-link" style="font-size:.78rem;cursor:pointer;">الشروط والأحكام</span>
+          <span class="nav-link" style="font-size:.78rem;cursor:pointer;">سياسة الخصوصية</span>
+        </div>
+      </div>
+      <!-- العمود 4: اتصلي بنا -->
+      <div>
+        <h4 style="font-size:.72rem;font-weight:700;color:#14332B;margin:0 0 1rem;letter-spacing:.05em;text-transform:uppercase;">اتصلي بنا</h4>
+        <div style="display:flex;flex-direction:column;gap:.5rem;font-size:.78rem;color:#64748B;">
+          <span>📍 الرياض، المملكة العربية السعودية</span>
+          <span>✉️ الدعم الفني: marktning@onfirmedmarketing.com</span>
+          <span style="display:flex;align-items:center;gap:.35rem;color:#16a34a;font-weight:700;font-size:.7rem;margin-top:.5rem;">
+            <span style="width:.45rem;height:.45rem;background:#16a34a;border-radius:50%;display:inline-block;animation:pulse 2s infinite;"></span>
+            جميع الخوادم تعمل بنجاح
+          </span>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid #E2E8F0;padding-top:1.5rem;margin-top:2rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;">
+      <p style="font-size:.75rem;color:#9CA3AF;margin:0;">© ٢٠٢٦ كُونفيرمد. جميع الحقوق محفوظة لشركة كُونفيرمد لتقنية المعلومات.</p>
+      <span style="font-size:.72rem;color:#9CA3AF;">صنع بفخر في المملكة العربية السعودية 🇸🇦</span>
+    </div>
+  </div>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div id="lm" class="overlay" style="display:none;" onclick="if(event.target===this)closeLogin()">
+  <div class="modal">
+    <button class="close-btn" onclick="closeLogin()">✕</button>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <div class="serif" style="font-size:1.3rem;font-weight:800;color:var(--green);">CONFIRMED</div>
+      <h2 style="font-size:1.2rem;font-weight:700;color:var(--text);margin:.5rem 0 .25rem;">تسجيل الدخول</h2>
+      <p style="font-size:.8rem;color:var(--muted);margin:0;">ادخلي بريدك الإلكتروني للحصول على رمز الدخول</p>
+    </div>
+    <form onsubmit="event.preventDefault();closeLogin();showToast('✓ تم إرسال رمز التحقق! تفقدي بريدك الإلكتروني.')">
+      <div style="margin-bottom:1rem;"><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">البريد الإلكتروني</label><input type="email" required placeholder="example@mail.com" style="width:100%;font-size:.875rem;padding:.75rem 1rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+      <button type="submit" class="btn-p" style="width:100%;padding:.875rem;font-size:.875rem;">إرسال رمز الدخول</button>
+    </form>
+    <p style="font-size:.78rem;color:var(--muted);text-align:center;margin-top:1rem;">لا يوجد لديك حساب؟ <button onclick="closeLogin();openReg()" style="color:var(--red);font-weight:700;background:none;border:none;cursor:pointer;font-size:.78rem;">سجّلي مجاناً</button></p>
+  </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div id="rm" class="overlay" style="display:none;" onclick="if(event.target===this)closeReg()">
+  <div class="modal">
+    <button class="close-btn" onclick="closeReg()">✕</button>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <div class="serif" style="font-size:1.3rem;font-weight:800;color:var(--green);">CONFIRMED</div>
+      <h2 style="font-size:1.2rem;font-weight:700;color:var(--text);margin:.5rem 0 .25rem;">تسجيل صالون جديد ✨</h2>
+      <p style="font-size:.8rem;color:var(--muted);margin:0;">ابدئي تجربتك المجانية لمدة ١٤ يوماً</p>
+    </div>
+    <form onsubmit="event.preventDefault();closeReg();showToast('✓ تم تسجيل صالونك! تفقدي بريدك لاستلام بيانات الدخول.')">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:.875rem;">
+        <div><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">اسم الصالون *</label><input type="text" required placeholder="صالون الجوري" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+        <div><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">المدينة *</label><select style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);cursor:pointer;"><option>الرياض</option><option>جدة</option><option>الدمام</option><option>مكة المكرمة</option><option>المدينة المنورة</option><option>أخرى</option></select></div>
+      </div>
+      <div style="margin-bottom:.875rem;"><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">البريد الإلكتروني *</label><input type="email" required placeholder="salon@example.com" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+      <div style="margin-bottom:.875rem;"><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">رقم الجوال *</label><input type="tel" required placeholder="05xxxxxxxx" style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);" /></div>
+      <div style="margin-bottom:1.25rem;"><label style="display:block;font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:.4rem;">اختاري الباقة</label><select style="width:100%;font-size:.85rem;padding:.7rem .875rem;background:var(--cream);border:1px solid var(--border);border-radius:.75rem;color:var(--text);cursor:pointer;"><option>Starter – 199 ر.س / شهر</option><option selected>Pro – 399 ر.س / شهر (الأكثر طلباً)</option><option>Enterprise – تواصل معنا</option></select></div>
+      <button type="submit" class="btn-p" style="width:100%;padding:.875rem;font-size:.875rem;box-shadow:0 6px 20px rgba(255,90,95,.2);">إنشاء الحساب وبدء التجربة المجانية 🚀</button>
+      <p style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:.875rem;">بالتسجيل أنتِ توافقين على شروط الاستخدام وسياسة الخصوصية</p>
+    </form>
+  </div>
+</div>
+
+<div id="toast">✓ تم بنجاح!</div>
+
+<script>
+  // header scroll
+  addEventListener('scroll', function() {
+    document.getElementById('hdr').classList.toggle('scrolled', scrollY > 20);
+  });
+
+  // live clock
+  function fmtTime(d) {
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+  function fmtRel(d) {
+    var diff = Math.round((d - new Date()) / 60000);
+    if (diff <= 0) return 'الآن';
+    if (diff < 60) return 'بعد ' + diff + ' دقيقة';
+    var h = Math.floor(diff / 60), m = diff % 60;
+    return m ? 'بعد ' + h + 'س ' + m + 'د' : 'بعد ' + h + ' ساعة';
+  }
+  function tick() {
+    var n = new Date();
+    document.getElementById('clk').textContent = n.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    document.getElementById('today-lbl').textContent = n.toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long' });
+    var t1 = new Date(n.getTime() + 15 * 60000);
+    var t2 = new Date(n.getTime() + 48 * 60000);
+    var t3 = new Date(n.getTime() + 135 * 60000);
+    document.getElementById('t1t').textContent = fmtTime(t1);
+    document.getElementById('t1r').textContent = fmtRel(t1);
+    document.getElementById('t2t').textContent = fmtTime(t2);
+    document.getElementById('t2r').textContent = fmtRel(t2);
+    document.getElementById('t3t').textContent = fmtTime(t3);
+    document.getElementById('t3r').textContent = fmtRel(t3);
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // billing toggle
+  var prices = { s: { m: 199, y: 159 }, p: { m: 399, y: 319 } };
+  function setBill(b) {
+    document.getElementById('bm').classList.toggle('on', b === 'm');
+    document.getElementById('by').classList.toggle('on', b === 'y');
+    var lbl = b === 'm' ? 'شهرياً' : 'شهرياً (فوترة سنوية)';
+    document.getElementById('ps').textContent = prices.s[b];
+    document.getElementById('prs').textContent = lbl;
+    document.getElementById('pp').textContent = prices.p[b];
+    document.getElementById('prp').textContent = lbl;
+  }
+
+  // modals
+  function openLogin() { document.getElementById('lm').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  function closeLogin() { document.getElementById('lm').style.display = 'none'; document.body.style.overflow = ''; }
+  function openReg() { document.getElementById('rm').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  function closeReg() { document.getElementById('rm').style.display = 'none'; document.body.style.overflow = ''; }
+
+  // contact form
+  function submitCF(e) {
+    e.preventDefault();
+    document.getElementById('cf').style.display = 'none';
+    document.getElementById('cs').style.display = 'block';
+  }
+
+  // toast
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 3500);
+  }
+
+  // enterprise btn hover
+  var eb = document.getElementById('ent-btn');
+  if (eb) {
+    eb.addEventListener('mouseover', function() { this.style.background = 'var(--green)'; this.style.color = '#fff'; });
+    eb.addEventListener('mouseout', function() { this.style.background = 'transparent'; this.style.color = 'var(--green)'; });
+  }
+
+  // escape key
+  addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeLogin(); closeReg(); } });
+</script>
+</body>
+</html>
