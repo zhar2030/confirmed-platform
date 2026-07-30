@@ -83507,6 +83507,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 var app = (0, import_express24.default)();
+app.set("etag", false);
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
