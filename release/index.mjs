@@ -83370,7 +83370,7 @@ router21.post("/public/bookings", async (req, res) => {
       `);
       if (svcRows.rows.length === 0) throw Object.assign(new Error("service_not_found"), { status: 404 });
       const service2 = svcRows.rows[0];
-      const newDuration2 = service2.duration;
+      const newDuration = service2.duration;
       if (resolvedStaffId) {
         const staffRows = await tx.execute(sql`
           SELECT id FROM staff WHERE id = ${resolvedStaffId} AND provider_id = ${provider.id} AND is_active = true LIMIT 1
@@ -83384,7 +83384,7 @@ router21.post("/public/bookings", async (req, res) => {
             AND status != 'cancelled'
         `);
         const conflict = existingRows.rows.some(
-          (b) => intervalsOverlap(time4, newDuration2, b.time, b.duration)
+          (b) => intervalsOverlap(time4, newDuration, b.time, b.duration)
         );
         if (conflict) throw Object.assign(new Error("slot_taken"), { status: 409 });
       } else {
@@ -83402,7 +83402,7 @@ router21.post("/public/bookings", async (req, res) => {
           `);
           const bookings3 = allBookings.rows;
           const hasAvailableStaff = allStaffIds.some(
-            (sid) => !bookings3.some((b) => b.staff_id === sid && intervalsOverlap(time4, newDuration2, b.time, b.duration))
+            (sid) => !bookings3.some((b) => b.staff_id === sid && intervalsOverlap(time4, newDuration, b.time, b.duration))
           );
           if (!hasAvailableStaff) throw Object.assign(new Error("slot_taken"), { status: 409 });
         }
@@ -83416,7 +83416,7 @@ router21.post("/public/bookings", async (req, res) => {
           (${provider.id}, ${resolvedStaffId}, ${resolvedBranchId},
            ${safeName}, ${safePhone}, ${safeEmail || null},
            ${String(service2.id)}, ${service2.name_ar}, ${date6}::date, ${time4},
-           ${newDuration2}, ${service2.price},
+           ${newDuration}, ${service2.price},
            'confirmed', 'online', ${safeNotes}, NOW())
         RETURNING id
       `);
@@ -83438,7 +83438,7 @@ router21.post("/public/bookings", async (req, res) => {
         staffName,
         date: date6,
         time: time4,
-        duration: newDuration,
+        duration: service.duration,
         price: service.price
       }
     });

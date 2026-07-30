@@ -438,7 +438,7 @@ router.post('/public/bookings', async (req, res) => {
         staffName,
         date,
         time,
-        duration: newDuration,
+        duration: service.duration,
         price: service.price,
       },
     });
