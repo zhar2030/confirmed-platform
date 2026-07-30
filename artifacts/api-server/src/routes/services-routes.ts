@@ -52,6 +52,7 @@ router.get('/services', async (req, res) => {
       sortOrder: s.sort_order,
     }));
 
+    res.set('Cache-Control', 'no-store');
     res.json({ services });
   } catch (err) {
     res.status(500).json({ error: 'failed_to_fetch_services' });
