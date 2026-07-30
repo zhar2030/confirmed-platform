@@ -10,6 +10,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const app: Express = express();
+app.set('etag', false); // Disable ETags — prevents 304 responses that hide fresh API data
 
 // ── Security Headers (Helmet) ─────────────────────────────────────────────────
 app.use(
