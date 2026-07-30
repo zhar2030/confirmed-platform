@@ -97,7 +97,7 @@ export default function OnlineOffersManager({ dbProviderId, providerSlug, branch
     if (!dbProviderId) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/services`, { headers });
+      const res = await fetch(`${API_BASE}/services?t=${Date.now()}`, { headers });
       if (res.ok) {
         const d = await res.json();
         setServices(d.services ?? []);
