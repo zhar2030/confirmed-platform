@@ -7,3 +7,4 @@
 - [Multi-Tenant Frontend Wiring](multi-tenant-frontend.md) — Login toggle (OTP/staff-password) in LandingPage; /staff/accept route in App.tsx; ProviderDashboard uses getUnifiedHeaders + 402 wall; approvals tab gated by canReviewApprovals.
 - [WhatsApp Business Integration](whatsapp-integration.md) — booking flow collects 7 CRM fields only; NAME_COLLECT state added; prices/financial data never shown in WhatsApp messages.
 - [Production Server Structure](production-server.md) — frontend must go to /var/www/html (Apache DocumentRoot); /root/confirmed-server/public is NOT served by Apache.
+- [Production RLS & Deployment](production-rls-deployment.md) — RLS disabled on all business tables; GitHub repo zhar2030/confirmed-platform; subscription bug blocks new accounts (task #66).
