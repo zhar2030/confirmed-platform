@@ -81570,32 +81570,35 @@ var internal_default = router12;
 var import_express13 = __toESM(require_express2(), 1);
 init_db2();
 init_drizzle_orm();
-async function withTenantCtx(providerId, fn) {
-  return db.transaction(async (tx) => {
-    await tx.execute(sql`SELECT set_config('app.current_tenant_id', ${String(providerId)}, true)`);
-    return fn(tx);
-  });
-}
 var router13 = (0, import_express13.Router)();
 router13.use("/services", tenantAuth);
 function resolveProviderId4(req) {
-  return req.tenant?.tenantId ?? req.providerId ?? null;
+  const id = req.tenant?.tenantId ?? req.providerId ?? null;
+  return id ? Number(id) : null;
 }
+router13.get("/services/ping", (_req, res) => {
+  res.json({ ok: true, ts: (/* @__PURE__ */ new Date()).toISOString(), service: "services-routes" });
+});
 router13.get("/services", async (req, res) => {
+  const providerId = resolveProviderId4(req);
+  logger.info({ providerId }, "[services] GET list");
+  if (!providerId) {
+    logger.warn("[services] GET \u2014 no providerId after auth");
+    return res.status(401).json({ error: "unauthorized", detail: "no provider id resolved" });
+  }
   try {
-    const providerId = resolveProviderId4(req);
-    if (!providerId) return res.status(401).json({ error: "unauthorized" });
     const result = await db.execute(sql`
-      SELECT id, name_ar, name_en, price, duration, category_ar, category_en, is_active, sort_order
-      FROM provider_services
-      WHERE provider_id = ${providerId}
-      ORDER BY sort_order ASC, id ASC
+      SELECT id, name_ar, name_en, price, duration,
+             category_ar, category_en, is_active, sort_order
+      FROM   provider_services
+      WHERE  provider_id = ${providerId}
+      ORDER  BY sort_order ASC, id ASC
     `);
     const services = result.rows.map((s) => ({
       id: String(s.id),
-      nameAr: s.name_ar,
-      nameEn: s.name_en,
-      name: s.name_ar,
+      nameAr: s.name_ar ?? "",
+      nameEn: s.name_en ?? "",
+      name: s.name_ar ?? "",
       price: Number(s.price),
       duration: Number(s.duration),
       categoryAr: s.category_ar ?? "",
@@ -81604,38 +81607,57 @@ router13.get("/services", async (req, res) => {
       isActive: s.is_active,
       sortOrder: s.sort_order
     }));
+    logger.info({ providerId, count: services.length }, "[services] GET list OK");
     res.set("Cache-Control", "no-store");
-    res.json({ services });
+    return res.json({ services });
   } catch (err) {
-    res.status(500).json({ error: "failed_to_fetch_services" });
+    logger.error({ err, providerId }, "[services] GET list DB error");
+    return res.status(500).json({
+      error: "failed_to_fetch_services",
+      detail: String(err?.message ?? err)
+    });
   }
 });
 router13.post("/services", async (req, res) => {
+  const providerId = resolveProviderId4(req);
+  logger.info({ providerId, body: req.body }, "[services] POST create");
+  if (!providerId) {
+    logger.warn("[services] POST \u2014 no providerId after auth");
+    return res.status(401).json({ error: "unauthorized", detail: "no provider id resolved" });
+  }
+  const { nameAr, nameEn, price, duration: duration3, categoryAr, categoryEn, sortOrder } = req.body;
+  if (!nameAr || price == null || duration3 == null) {
+    return res.status(400).json({ error: "missing_required_fields", required: ["nameAr", "price", "duration"] });
+  }
   try {
-    const providerId = resolveProviderId4(req);
-    if (!providerId) return res.status(401).json({ error: "unauthorized" });
-    const { nameAr, nameEn, price, duration: duration3, categoryAr, categoryEn, sortOrder } = req.body;
-    if (!nameAr || price == null || duration3 == null) {
-      return res.status(400).json({ error: "missing_required_fields" });
-    }
-    const result = await withTenantCtx(providerId, (tx) => tx.execute(sql`
-      INSERT INTO provider_services (provider_id, name_ar, name_en, price, duration, category_ar, category_en, sort_order)
-      VALUES (${providerId}, ${nameAr}, ${nameEn ?? nameAr}, ${Number(price)}, ${Number(duration3)},
-              ${categoryAr ?? ""}, ${categoryEn ?? ""}, ${sortOrder ?? 0})
+    const result = await db.execute(sql`
+      INSERT INTO provider_services
+        (provider_id, name_ar, name_en, price, duration, category_ar, category_en, sort_order)
+      VALUES
+        (${providerId}, ${nameAr}, ${nameEn ?? nameAr}, ${Number(price)}, ${Number(duration3)},
+         ${categoryAr ?? ""}, ${categoryEn ?? ""}, ${sortOrder ?? 0})
       RETURNING id
-    `));
-    res.json({ success: true, id: String(result.rows[0].id) });
+    `);
+    const newId = String(result.rows[0].id);
+    logger.info({ providerId, newId }, "[services] POST create OK");
+    return res.json({ success: true, id: newId });
   } catch (err) {
-    res.status(500).json({ error: "failed_to_create_service" });
+    logger.error({ err, providerId }, "[services] POST create DB error");
+    return res.status(500).json({
+      error: "failed_to_create_service",
+      detail: String(err?.message ?? err)
+    });
   }
 });
 router13.patch("/services/:id", async (req, res) => {
+  const providerId = resolveProviderId4(req);
+  const id = parseInt(req.params.id, 10);
+  logger.info({ providerId, id, body: req.body }, "[services] PATCH update");
+  if (!providerId) return res.status(401).json({ error: "unauthorized" });
+  if (isNaN(id)) return res.status(400).json({ error: "invalid_id" });
+  const { nameAr, nameEn, price, duration: duration3, categoryAr, categoryEn, isActive, sortOrder } = req.body;
   try {
-    const providerId = resolveProviderId4(req);
-    if (!providerId) return res.status(401).json({ error: "unauthorized" });
-    const id = parseInt(req.params.id);
-    const { nameAr, nameEn, price, duration: duration3, categoryAr, categoryEn, isActive, sortOrder } = req.body;
-    await withTenantCtx(providerId, (tx) => tx.execute(sql`
+    await db.execute(sql`
       UPDATE provider_services
       SET
         name_ar     = COALESCE(${nameAr ?? null}, name_ar),
@@ -81647,23 +81669,36 @@ router13.patch("/services/:id", async (req, res) => {
         is_active   = COALESCE(${isActive ?? null}, is_active),
         sort_order  = COALESCE(${sortOrder != null ? Number(sortOrder) : null}, sort_order)
       WHERE id = ${id} AND provider_id = ${providerId}
-    `));
-    res.json({ success: true });
+    `);
+    logger.info({ providerId, id }, "[services] PATCH update OK");
+    return res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: "failed_to_update_service" });
+    logger.error({ err, providerId, id }, "[services] PATCH update DB error");
+    return res.status(500).json({
+      error: "failed_to_update_service",
+      detail: String(err?.message ?? err)
+    });
   }
 });
 router13.delete("/services/:id", async (req, res) => {
+  const providerId = resolveProviderId4(req);
+  const id = parseInt(req.params.id, 10);
+  logger.info({ providerId, id }, "[services] DELETE");
+  if (!providerId) return res.status(401).json({ error: "unauthorized" });
+  if (isNaN(id)) return res.status(400).json({ error: "invalid_id" });
   try {
-    const providerId = resolveProviderId4(req);
-    if (!providerId) return res.status(401).json({ error: "unauthorized" });
-    const id = parseInt(req.params.id);
-    await withTenantCtx(providerId, (tx) => tx.execute(sql`
-      DELETE FROM provider_services WHERE id = ${id} AND provider_id = ${providerId}
-    `));
-    res.json({ success: true });
+    await db.execute(sql`
+      DELETE FROM provider_services
+      WHERE  id = ${id} AND provider_id = ${providerId}
+    `);
+    logger.info({ providerId, id }, "[services] DELETE OK");
+    return res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: "failed_to_delete_service" });
+    logger.error({ err, providerId, id }, "[services] DELETE DB error");
+    return res.status(500).json({
+      error: "failed_to_delete_service",
+      detail: String(err?.message ?? err)
+    });
   }
 });
 var services_routes_default = router13;
