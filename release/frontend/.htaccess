@@ -1,0 +1,11 @@
+# Prevent caching of HTML files so users always get the latest app version
+<FilesMatch "\.html$">
+  Header set Cache-Control "no-store, no-cache, must-revalidate"
+  Header set Pragma "no-cache"
+  Header set Expires "0"
+</FilesMatch>
+
+# Cache static assets (JS/CSS/images) for 1 year — they have hashed filenames
+<FilesMatch "\.(js|css|png|svg|ico|woff2?)$">
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
