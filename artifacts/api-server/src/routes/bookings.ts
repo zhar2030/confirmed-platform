@@ -103,11 +103,13 @@ router.get('/bookings', async (req, res) => {
     }
 
     // Use pool directly — most reliable way to set RLS context before querying
+    console.log(`[GET /bookings] providerId=${providerId} date=${date} staffId=${staffId}`);
     const client = await pool.connect();
     let rows: any[] = [];
     try {
       await client.query('BEGIN');
       await client.query(`SELECT set_config('app.current_tenant_id', $1, true)`, [String(providerId)]);
+      console.log(`[GET /bookings] tenant ctx set to ${providerId}`);
 
       const params: any[] = [providerId];
       let extraWhere = '';
@@ -124,15 +126,16 @@ router.get('/bookings', async (req, res) => {
         `SELECT id, provider_id, staff_id, branch_id,
                 client_name, client_phone, client_email,
                 service_id, service_name,
-                "date"::text AS date, time, duration, price,
+                "date"::text AS date, "time"::text AS time, duration, price,
                 status, source, notes
          FROM bookings
          WHERE provider_id = $1${extraWhere}
-         ORDER BY "date", time`,
+         ORDER BY "date", "time"`,
         params,
       );
       await client.query('COMMIT');
       rows = result.rows;
+      console.log(`[GET /bookings] query OK — ${rows.length} rows for provider ${providerId}`);
     } catch (e) {
       await client.query('ROLLBACK');
       throw e;

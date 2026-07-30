@@ -80069,11 +80069,13 @@ router5.get("/bookings", async (req, res) => {
       const sid = parseInt(staffId, 10);
       if (!isNaN(sid)) conditions.push(eq(bookings.staffId, sid));
     }
+    console.log(`[GET /bookings] providerId=${providerId} date=${date6} staffId=${staffId}`);
     const client2 = await pool.connect();
     let rows = [];
     try {
       await client2.query("BEGIN");
       await client2.query(`SELECT set_config('app.current_tenant_id', $1, true)`, [String(providerId)]);
+      console.log(`[GET /bookings] tenant ctx set to ${providerId}`);
       const params = [providerId];
       let extraWhere = "";
       if (date6 && typeof date6 === "string") {
@@ -80091,15 +80093,16 @@ router5.get("/bookings", async (req, res) => {
         `SELECT id, provider_id, staff_id, branch_id,
                 client_name, client_phone, client_email,
                 service_id, service_name,
-                "date"::text AS date, time, duration, price,
+                "date"::text AS date, "time"::text AS time, duration, price,
                 status, source, notes
          FROM bookings
          WHERE provider_id = $1${extraWhere}
-         ORDER BY "date", time`,
+         ORDER BY "date", "time"`,
         params
       );
       await client2.query("COMMIT");
       rows = result.rows;
+      console.log(`[GET /bookings] query OK \u2014 ${rows.length} rows for provider ${providerId}`);
     } catch (e) {
       await client2.query("ROLLBACK");
       throw e;
