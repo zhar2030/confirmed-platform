@@ -89,6 +89,12 @@ const otpVerifyLimiter = rateLimit({
   message: { error: "otp_rate_limited", retryAfter: 60 },
 });
 
+// ── Trace logger for bookings (diagnosis — remove after fix) ─────────────────
+app.use('/api/bookings', (req, _res, next) => {
+  console.log(`[TRACE /api/bookings] method=${req.method} auth-token=${req.headers['x-auth-token'] ? 'present' : 'MISSING'} provider-id=${req.headers['x-provider-id'] ?? 'none'}`);
+  next();
+});
+
 app.use("/api", generalLimiter);
 app.use("/api/auth/send-otp",   otpSendLimiter);
 app.use("/api/auth/verify-otp", otpVerifyLimiter);
