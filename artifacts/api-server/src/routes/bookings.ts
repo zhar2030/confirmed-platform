@@ -102,11 +102,46 @@ router.get('/bookings', async (req, res) => {
       if (!isNaN(sid)) conditions.push(eq(bookings.staffId, sid));
     }
 
-    const rows = await withTenantCtx(providerId, (tx) =>
-      tx.select().from(bookings).where(and(...conditions)).orderBy(bookings.date, bookings.time)
+    // Use raw SQL inside withTenantCtx — Drizzle ORM .select() in a transaction
+    // can silently bypass the set_config RLS context; raw execute is reliable.
+    const dateFilter   = date    ? sql`AND date = ${String(date)}::date`         : sql``;
+    const staffFilter  = staffId && staffId !== 'all'
+      ? sql`AND staff_id = ${parseInt(String(staffId), 10)}`
+      : sql``;
+
+    const result = await withTenantCtx(providerId, (tx) =>
+      tx.execute(sql`
+        SELECT id, provider_id, staff_id, branch_id,
+               client_name, client_phone, client_email,
+               service_id, service_name,
+               date::text AS date, time, duration, price,
+               status, source, notes, updated_at
+        FROM bookings
+        WHERE provider_id = ${providerId}
+        ${dateFilter}
+        ${staffFilter}
+        ORDER BY date, time
+      `)
     );
 
-    return res.json({ bookings: rows.map(toFrontend) });
+    const rows = result.rows.map((b: any) => ({
+      id:          String(b.id),
+      clientName:  b.client_name,
+      clientPhone: b.client_phone ?? '',
+      serviceId:   b.service_id ?? '',
+      serviceName: b.service_name ?? '',
+      staffId:     b.staff_id != null ? String(b.staff_id) : '',
+      date:        b.date ?? '',
+      time:        b.time,
+      duration:    b.duration,
+      price:       b.price,
+      status:      b.status,
+      notes:       b.notes ?? '',
+      branchId:    b.branch_id ?? 'br-main',
+      source:      b.source,
+    }));
+
+    return res.json({ bookings: rows });
   } catch (err) {
     console.error('[GET /bookings]', err);
     return res.status(500).json({ error: 'server_error' });
