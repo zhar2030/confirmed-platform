@@ -3,7 +3,7 @@
  * All endpoints are scoped to a provider via X-Provider-Id header.
  */
 import { Router } from 'express';
-import { db, bookings, staff } from '../lib/db';
+import { db, bookings, staff, pool } from '../lib/db';
 import { eq, and, ne, sql } from 'drizzle-orm';
 import { tenantAuth } from '../middlewares/tenantAuth';
 import { requireApprovalFor } from '../lib/approvalEngine';
@@ -102,46 +102,62 @@ router.get('/bookings', async (req, res) => {
       if (!isNaN(sid)) conditions.push(eq(bookings.staffId, sid));
     }
 
-    // Use raw SQL inside withTenantCtx — Drizzle ORM .select() in a transaction
-    // can silently bypass the set_config RLS context; raw execute is reliable.
-    const dateFilter   = date    ? sql`AND date = ${String(date)}::date`         : sql``;
-    const staffFilter  = staffId && staffId !== 'all'
-      ? sql`AND staff_id = ${parseInt(String(staffId), 10)}`
-      : sql``;
+    // Use pool directly — most reliable way to set RLS context before querying
+    const client = await pool.connect();
+    let rows: any[] = [];
+    try {
+      await client.query('BEGIN');
+      await client.query(`SELECT set_config('app.current_tenant_id', $1, true)`, [String(providerId)]);
 
-    const result = await withTenantCtx(providerId, (tx) =>
-      tx.execute(sql`
-        SELECT id, provider_id, staff_id, branch_id,
-               client_name, client_phone, client_email,
-               service_id, service_name,
-               date::text AS date, time, duration, price,
-               status, source, notes, updated_at
-        FROM bookings
-        WHERE provider_id = ${providerId}
-        ${dateFilter}
-        ${staffFilter}
-        ORDER BY date, time
-      `)
-    );
+      const params: any[] = [providerId];
+      let extraWhere = '';
+      if (date && typeof date === 'string') {
+        params.push(date);
+        extraWhere += ` AND "date" = $${params.length}::date`;
+      }
+      if (staffId && staffId !== 'all') {
+        const sid = parseInt(String(staffId), 10);
+        if (!isNaN(sid)) { params.push(sid); extraWhere += ` AND staff_id = $${params.length}`; }
+      }
 
-    const rows = result.rows.map((b: any) => ({
-      id:          String(b.id),
-      clientName:  b.client_name,
-      clientPhone: b.client_phone ?? '',
-      serviceId:   b.service_id ?? '',
-      serviceName: b.service_name ?? '',
-      staffId:     b.staff_id != null ? String(b.staff_id) : '',
-      date:        b.date ?? '',
-      time:        b.time,
-      duration:    b.duration,
-      price:       b.price,
-      status:      b.status,
-      notes:       b.notes ?? '',
-      branchId:    b.branch_id ?? 'br-main',
-      source:      b.source,
-    }));
+      const result = await client.query(
+        `SELECT id, provider_id, staff_id, branch_id,
+                client_name, client_phone, client_email,
+                service_id, service_name,
+                "date"::text AS date, time, duration, price,
+                status, source, notes
+         FROM bookings
+         WHERE provider_id = $1${extraWhere}
+         ORDER BY "date", time`,
+        params,
+      );
+      await client.query('COMMIT');
+      rows = result.rows;
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
 
-    return res.json({ bookings: rows });
+    return res.json({
+      bookings: rows.map((b: any) => ({
+        id:          String(b.id),
+        clientName:  b.client_name,
+        clientPhone: b.client_phone ?? '',
+        serviceId:   b.service_id ?? '',
+        serviceName: b.service_name ?? '',
+        staffId:     b.staff_id != null ? String(b.staff_id) : '',
+        date:        b.date ?? '',
+        time:        b.time,
+        duration:    b.duration,
+        price:       b.price,
+        status:      b.status,
+        notes:       b.notes ?? '',
+        branchId:    b.branch_id ?? 'br-main',
+        source:      b.source,
+      })),
+    });
   } catch (err) {
     console.error('[GET /bookings]', err);
     return res.status(500).json({ error: 'server_error' });

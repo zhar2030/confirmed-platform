@@ -80069,40 +80069,61 @@ router5.get("/bookings", async (req, res) => {
       const sid = parseInt(staffId, 10);
       if (!isNaN(sid)) conditions.push(eq(bookings.staffId, sid));
     }
-    const dateFilter = date6 ? sql`AND date = ${String(date6)}::date` : sql``;
-    const staffFilter = staffId && staffId !== "all" ? sql`AND staff_id = ${parseInt(String(staffId), 10)}` : sql``;
-    const result = await withTenantCtx(
-      providerId,
-      (tx) => tx.execute(sql`
-        SELECT id, provider_id, staff_id, branch_id,
-               client_name, client_phone, client_email,
-               service_id, service_name,
-               date::text AS date, time, duration, price,
-               status, source, notes, updated_at
-        FROM bookings
-        WHERE provider_id = ${providerId}
-        ${dateFilter}
-        ${staffFilter}
-        ORDER BY date, time
-      `)
-    );
-    const rows = result.rows.map((b) => ({
-      id: String(b.id),
-      clientName: b.client_name,
-      clientPhone: b.client_phone ?? "",
-      serviceId: b.service_id ?? "",
-      serviceName: b.service_name ?? "",
-      staffId: b.staff_id != null ? String(b.staff_id) : "",
-      date: b.date ?? "",
-      time: b.time,
-      duration: b.duration,
-      price: b.price,
-      status: b.status,
-      notes: b.notes ?? "",
-      branchId: b.branch_id ?? "br-main",
-      source: b.source
-    }));
-    return res.json({ bookings: rows });
+    const client2 = await pool.connect();
+    let rows = [];
+    try {
+      await client2.query("BEGIN");
+      await client2.query(`SELECT set_config('app.current_tenant_id', $1, true)`, [String(providerId)]);
+      const params = [providerId];
+      let extraWhere = "";
+      if (date6 && typeof date6 === "string") {
+        params.push(date6);
+        extraWhere += ` AND "date" = $${params.length}::date`;
+      }
+      if (staffId && staffId !== "all") {
+        const sid = parseInt(String(staffId), 10);
+        if (!isNaN(sid)) {
+          params.push(sid);
+          extraWhere += ` AND staff_id = $${params.length}`;
+        }
+      }
+      const result = await client2.query(
+        `SELECT id, provider_id, staff_id, branch_id,
+                client_name, client_phone, client_email,
+                service_id, service_name,
+                "date"::text AS date, time, duration, price,
+                status, source, notes
+         FROM bookings
+         WHERE provider_id = $1${extraWhere}
+         ORDER BY "date", time`,
+        params
+      );
+      await client2.query("COMMIT");
+      rows = result.rows;
+    } catch (e) {
+      await client2.query("ROLLBACK");
+      throw e;
+    } finally {
+      client2.release();
+    }
+    return res.json({
+      bookings: rows.map((b) => ({
+        id: String(b.id),
+        clientName: b.client_name,
+        clientPhone: b.client_phone ?? "",
+        serviceId: b.service_id ?? "",
+        serviceName: b.service_name ?? "",
+        staffId: b.staff_id != null ? String(b.staff_id) : "",
+        date: b.date ?? "",
+        time: b.time,
+        duration: b.duration,
+        price: b.price,
+        status: b.status,
+        notes: b.notes ?? "",
+        branchId: b.branch_id ?? "br-main",
+        source: b.source
+      }))
+    });
   } catch (err) {
     console.error("[GET /bookings]", err);
     return res.status(500).json({ error: "server_error" });
