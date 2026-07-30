@@ -139,7 +139,7 @@ export default function ProviderDashboard({
       .then(data => {
         if (data.provider?.id) setDbProviderId(data.provider.id);
         if (data.provider?.slug) setProviderSlug(data.provider.slug);
-        if (data.provider?.online_booking_enabled != null) setOnlineBookingEnabled(data.provider.online_booking_enabled);
+        if (data.provider?.onlineBookingEnabled != null) setOnlineBookingEnabled(data.provider.onlineBookingEnabled);
       })
       .catch(() => { /* offline / not found — keep local mode */ });
   }, [providerData?.username]);
