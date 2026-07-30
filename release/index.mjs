@@ -81609,7 +81609,7 @@ router13.get("/services", async (req, res) => {
     }));
     logger.info({ providerId, count: services.length }, "[services] GET list OK");
     res.set("Cache-Control", "no-store");
-    return res.json({ services });
+    return res.json({ services, _debug: { providerId, count: services.length } });
   } catch (err) {
     logger.error({ err, providerId }, "[services] GET list DB error");
     return res.status(500).json({
