@@ -9,6 +9,16 @@ import { sql } from 'drizzle-orm';
 
 const router = Router();
 
+// ── Tenant context helper ─────────────────────────────────────────────────────
+// All business tables have FORCE ROW LEVEL SECURITY. Every query on provider_services,
+// staff, branches, bookings must run inside a transaction with set_config first.
+async function withTenantCtx<T>(providerId: number, fn: (tx: typeof db) => Promise<T>): Promise<T> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT set_config('app.current_tenant_id', ${String(providerId)}, true)`);
+    return fn(tx as unknown as typeof db);
+  });
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function timeToMinutes(t: string): number {
   const [h, m] = t.split(':').map(Number);
@@ -60,26 +70,28 @@ router.get('/public/profile/:slug', async (req, res) => {
     if (providerRows.rows.length === 0) return res.status(404).json({ error: 'salon_not_found' });
     const p = providerRows.rows[0] as any;
 
-    const [svcRows, staffRows, branchRows] = await Promise.all([
-      db.execute(sql`
-        SELECT id, name_ar, name_en, price, duration, category_ar, category_en
-        FROM provider_services
-        WHERE provider_id = ${p.id} AND is_active = true
-        ORDER BY sort_order, id
-      `),
-      db.execute(sql`
-        SELECT id, name, role
-        FROM staff
-        WHERE provider_id = ${p.id} AND is_active = true
-        ORDER BY name
-      `),
-      db.execute(sql`
-        SELECT id, name_ar, name_en, city_ar, city_en, address_ar, address_en, phone, is_active
-        FROM branches
-        WHERE provider_id = ${p.id}
-        ORDER BY id
-      `),
-    ]);
+    const [svcRows, staffRows, branchRows] = await withTenantCtx(p.id, async (tx) => {
+      return Promise.all([
+        tx.execute(sql`
+          SELECT id, name_ar, name_en, price, duration, category_ar, category_en
+          FROM provider_services
+          WHERE provider_id = ${p.id} AND is_active = true
+          ORDER BY sort_order, id
+        `),
+        tx.execute(sql`
+          SELECT id, name, role
+          FROM staff
+          WHERE provider_id = ${p.id} AND is_active = true
+          ORDER BY name
+        `),
+        tx.execute(sql`
+          SELECT id, name_ar, name_en, city_ar, city_en, address_ar, address_en, phone, is_active
+          FROM branches
+          WHERE provider_id = ${p.id}
+          ORDER BY id
+        `),
+      ]);
+    });
 
     return res.json({
       salon: {
@@ -138,26 +150,28 @@ router.get('/public/salon/:slug', async (req, res) => {
     const provider = providerRows.rows[0] as any;
     if (!provider.online_booking_enabled) return res.status(403).json({ error: 'online_booking_disabled' });
 
-    const [servicesRows, staffRows, branchRows] = await Promise.all([
-      db.execute(sql`
-        SELECT id, name_ar, name_en, price, duration, category_ar, category_en, sort_order
-        FROM provider_services
-        WHERE provider_id = ${provider.id} AND is_active = true
-        ORDER BY sort_order, id
-      `),
-      db.execute(sql`
-        SELECT id, name, role
-        FROM staff
-        WHERE provider_id = ${provider.id} AND is_active = true
-        ORDER BY name
-      `),
-      db.execute(sql`
-        SELECT id, name_ar, name_en, city_ar, city_en, address_ar, address_en
-        FROM branches
-        WHERE provider_id = ${provider.id} AND is_active = true
-        ORDER BY id
-      `),
-    ]);
+    const [servicesRows, staffRows, branchRows] = await withTenantCtx(provider.id, async (tx) => {
+      return Promise.all([
+        tx.execute(sql`
+          SELECT id, name_ar, name_en, price, duration, category_ar, category_en, sort_order
+          FROM provider_services
+          WHERE provider_id = ${provider.id} AND is_active = true
+          ORDER BY sort_order, id
+        `),
+        tx.execute(sql`
+          SELECT id, name, role
+          FROM staff
+          WHERE provider_id = ${provider.id} AND is_active = true
+          ORDER BY name
+        `),
+        tx.execute(sql`
+          SELECT id, name_ar, name_en, city_ar, city_en, address_ar, address_en
+          FROM branches
+          WHERE provider_id = ${provider.id} AND is_active = true
+          ORDER BY id
+        `),
+      ]);
+    });
 
     return res.json({
       salon: {
@@ -220,14 +234,13 @@ router.get('/public/salon/:slug/availability', async (req, res) => {
 
     if (staffId) {
       // ── Specific staff mode ───────────────────────────────────────────────
-      // A slot is occupied if that staff member has a booking that covers it.
-      const bookingRows = await db.execute(sql`
+      const bookingRows = await withTenantCtx(providerId, (tx) => tx.execute(sql`
         SELECT time, duration FROM bookings
         WHERE provider_id = ${providerId}
           AND date = ${date}::date
           AND staff_id = ${parseInt(staffId)}
           AND status != 'cancelled'
-      `);
+      `));
 
       const occupied = new Set<string>();
       for (const b of bookingRows.rows as any[]) {
@@ -239,29 +252,28 @@ router.get('/public/salon/:slug/availability', async (req, res) => {
 
     } else {
       // ── Any-staff mode ────────────────────────────────────────────────────
-      // A slot is occupied only when ALL active staff are booked at that time.
-      // First, get all active staff for this provider.
-      const staffRows = await db.execute(sql`
-        SELECT id FROM staff WHERE provider_id = ${providerId} AND is_active = true
-      `);
+      const { staffRows, bookingRows } = await withTenantCtx(providerId, async (tx) => {
+        const [staffRows, bookingRows] = await Promise.all([
+          tx.execute(sql`SELECT id FROM staff WHERE provider_id = ${providerId} AND is_active = true`),
+          tx.execute(sql`
+            SELECT staff_id, time, duration FROM bookings
+            WHERE provider_id = ${providerId}
+              AND date = ${date}::date
+              AND status != 'cancelled'
+              AND staff_id IS NOT NULL
+          `),
+        ]);
+        return { staffRows, bookingRows };
+      });
+
       const allStaffIds = (staffRows.rows as any[]).map(s => s.id as number);
 
       if (allStaffIds.length === 0) {
-        // No staff at all — treat every slot as free (booking will proceed with null staff_id)
         return res.json({ date, occupied: [] });
       }
 
-      // Get all non-cancelled bookings on that date for this provider
-      const bookingRows = await db.execute(sql`
-        SELECT staff_id, time, duration FROM bookings
-        WHERE provider_id = ${providerId}
-          AND date = ${date}::date
-          AND status != 'cancelled'
-          AND staff_id IS NOT NULL
-      `);
       const bookings = bookingRows.rows as Array<{ staff_id: number; time: string; duration: number }>;
 
-      // For each portal slot (9:00..20:30 in 30-min steps), check if ALL staff are busy
       const occupied: string[] = [];
       for (let totalMin = 9 * 60; totalMin < 21 * 60; totalMin += 30) {
         const hh = Math.floor(totalMin / 60).toString().padStart(2, '0');
@@ -327,67 +339,7 @@ router.post('/public/bookings', async (req, res) => {
     const provider = provRows.rows[0] as any;
     if (!provider.online_booking_enabled) return res.status(403).json({ error: 'online_booking_disabled' });
 
-    // Resolve service
-    const svcRows = await db.execute(sql`
-      SELECT id, name_ar, price, duration
-      FROM provider_services
-      WHERE id = ${parseInt(serviceId)} AND provider_id = ${provider.id} AND is_active = true
-      LIMIT 1
-    `);
-    if (svcRows.rows.length === 0) return res.status(404).json({ error: 'service_not_found' });
-    const service = svcRows.rows[0] as any;
-    const newDuration: number = service.duration;
-
-    if (staffId) {
-      // ── Specific staff requested ──────────────────────────────────────────
-      const staffRows = await db.execute(sql`
-        SELECT id FROM staff WHERE id = ${parseInt(staffId)} AND provider_id = ${provider.id} AND is_active = true LIMIT 1
-      `);
-      if (staffRows.rows.length === 0) return res.status(404).json({ error: 'staff_not_found' });
-
-      // Duration-based overlap check for this staff member
-      const existingRows = await db.execute(sql`
-        SELECT time, duration FROM bookings
-        WHERE provider_id = ${provider.id}
-          AND date = ${date}::date
-          AND staff_id = ${parseInt(staffId)}
-          AND status != 'cancelled'
-      `);
-      const conflict = (existingRows.rows as any[]).some(b =>
-        intervalsOverlap(time, newDuration, b.time, b.duration)
-      );
-      if (conflict) return res.status(409).json({ error: 'slot_taken', message: 'Staff unavailable at this time' });
-
-    } else {
-      // ── Any-staff mode: find a free staff member ──────────────────────────
-      const allStaffRows = await db.execute(sql`
-        SELECT id FROM staff WHERE provider_id = ${provider.id} AND is_active = true
-      `);
-      const allStaffIds = (allStaffRows.rows as any[]).map(s => s.id as number);
-
-      if (allStaffIds.length > 0) {
-        // Fetch all bookings for that date to check per-staff availability
-        const allBookings = await db.execute(sql`
-          SELECT staff_id, time, duration FROM bookings
-          WHERE provider_id = ${provider.id}
-            AND date = ${date}::date
-            AND status != 'cancelled'
-            AND staff_id IS NOT NULL
-        `);
-        const bookings = allBookings.rows as Array<{ staff_id: number; time: string; duration: number }>;
-
-        const hasAvailableStaff = allStaffIds.some(sid =>
-          !bookings.some(b => b.staff_id === sid && intervalsOverlap(time, newDuration, b.time, b.duration))
-        );
-
-        if (!hasAvailableStaff) {
-          return res.status(409).json({ error: 'slot_taken', message: 'All staff are fully booked at this time' });
-        }
-      }
-      // Proceed with null staff_id (salon assigns manually)
-    }
-
-    // Sanitize inputs
+    // Sanitize inputs early
     const resolvedStaffId  = staffId  ? parseInt(staffId)  : null;
     const resolvedBranchId = branchId ? parseInt(branchId) : null;
     const safeName  = String(clientName).trim().slice(0, 255);
@@ -395,10 +347,63 @@ router.post('/public/bookings', async (req, res) => {
     const safeEmail = String(clientEmail  ?? '').trim().slice(0, 255);
     const safeNotes = String(notes ?? '').trim().slice(0, 1000);
 
-    // Create booking (wrap in tenant ctx so RLS policy passes)
-    const result = await db.transaction(async (tx) => {
-      await tx.execute(sql`SELECT set_config('app.current_tenant_id', ${String(provider.id)}, true)`);
-      return tx.execute(sql`
+    // All queries on RLS-protected tables + INSERT must run inside one tenant transaction
+    const { bookingId, service, staffName } = await withTenantCtx(provider.id, async (tx) => {
+      // Resolve service
+      const svcRows = await tx.execute(sql`
+        SELECT id, name_ar, price, duration
+        FROM provider_services
+        WHERE id = ${parseInt(serviceId)} AND provider_id = ${provider.id} AND is_active = true
+        LIMIT 1
+      `);
+      if (svcRows.rows.length === 0) throw Object.assign(new Error('service_not_found'), { status: 404 });
+      const service = svcRows.rows[0] as any;
+      const newDuration: number = service.duration;
+
+      if (resolvedStaffId) {
+        // ── Specific staff requested ────────────────────────────────────────
+        const staffRows = await tx.execute(sql`
+          SELECT id FROM staff WHERE id = ${resolvedStaffId} AND provider_id = ${provider.id} AND is_active = true LIMIT 1
+        `);
+        if (staffRows.rows.length === 0) throw Object.assign(new Error('staff_not_found'), { status: 404 });
+
+        const existingRows = await tx.execute(sql`
+          SELECT time, duration FROM bookings
+          WHERE provider_id = ${provider.id}
+            AND date = ${date}::date
+            AND staff_id = ${resolvedStaffId}
+            AND status != 'cancelled'
+        `);
+        const conflict = (existingRows.rows as any[]).some(b =>
+          intervalsOverlap(time, newDuration, b.time, b.duration)
+        );
+        if (conflict) throw Object.assign(new Error('slot_taken'), { status: 409 });
+
+      } else {
+        // ── Any-staff mode ──────────────────────────────────────────────────
+        const allStaffRows = await tx.execute(sql`
+          SELECT id FROM staff WHERE provider_id = ${provider.id} AND is_active = true
+        `);
+        const allStaffIds = (allStaffRows.rows as any[]).map(s => s.id as number);
+
+        if (allStaffIds.length > 0) {
+          const allBookings = await tx.execute(sql`
+            SELECT staff_id, time, duration FROM bookings
+            WHERE provider_id = ${provider.id}
+              AND date = ${date}::date
+              AND status != 'cancelled'
+              AND staff_id IS NOT NULL
+          `);
+          const bookings = allBookings.rows as Array<{ staff_id: number; time: string; duration: number }>;
+          const hasAvailableStaff = allStaffIds.some(sid =>
+            !bookings.some(b => b.staff_id === sid && intervalsOverlap(time, newDuration, b.time, b.duration))
+          );
+          if (!hasAvailableStaff) throw Object.assign(new Error('slot_taken'), { status: 409 });
+        }
+      }
+
+      // INSERT booking
+      const result = await tx.execute(sql`
         INSERT INTO bookings
           (provider_id, staff_id, branch_id, client_name, client_phone, client_email,
            service_id, service_name, date, time, duration, price,
@@ -411,16 +416,17 @@ router.post('/public/bookings', async (req, res) => {
            'confirmed', 'online', ${safeNotes}, NOW())
         RETURNING id
       `);
+      const bookingId = (result.rows[0] as any).id;
+
+      // Fetch staff name if assigned
+      let staffName: string | null = null;
+      if (resolvedStaffId) {
+        const sRow = await tx.execute(sql`SELECT name FROM staff WHERE id = ${resolvedStaffId} LIMIT 1`);
+        staffName = (sRow.rows[0] as any)?.name ?? null;
+      }
+
+      return { bookingId, service, staffName };
     });
-
-    const bookingId = (result.rows[0] as any).id;
-
-    // Fetch staff name if assigned
-    let staffName: string | null = null;
-    if (resolvedStaffId) {
-      const sRow = await db.execute(sql`SELECT name FROM staff WHERE id = ${resolvedStaffId} LIMIT 1`);
-      staffName = (sRow.rows[0] as any)?.name ?? null;
-    }
 
     return res.status(201).json({
       success: true,
@@ -437,6 +443,11 @@ router.post('/public/bookings', async (req, res) => {
       },
     });
   } catch (err: any) {
+    const status = err.status ?? 500;
+    const known = ['service_not_found', 'staff_not_found', 'slot_taken'];
+    if (known.includes(err.message)) {
+      return res.status(status).json({ error: err.message });
+    }
     console.error('[POST /public/bookings]', err.message);
     return res.status(500).json({ error: 'booking_failed', message: err.message });
   }
