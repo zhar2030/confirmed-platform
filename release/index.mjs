@@ -36539,10 +36539,10 @@ var init_subquery = __esm({
     init_entity();
     Subquery = class {
       static [entityKind] = "Subquery";
-      constructor(sql4, fields, alias, isWith = false, usedTables = []) {
+      constructor(sql3, fields, alias, isWith = false, usedTables = []) {
         this._ = {
           brand: "Subquery",
-          sql: sql4,
+          sql: sql3,
           selectedFields: fields,
           alias,
           isWith,
@@ -43262,10 +43262,10 @@ var init_raw = __esm({
     init_entity();
     init_query_promise();
     PgRaw = class extends QueryPromise {
-      constructor(execute, sql4, query, mapBatchResult) {
+      constructor(execute, sql3, query, mapBatchResult) {
         super();
         this.execute = execute;
-        this.sql = sql4;
+        this.sql = sql3;
         this.query = query;
         this.mapBatchResult = mapBatchResult;
       }
@@ -43585,8 +43585,8 @@ var init_db = __esm({
 });
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.2_@types+pg@8.20.0_pg@8.22.0/node_modules/drizzle-orm/cache/core/cache.js
-async function hashQuery(sql4, params) {
-  const dataToHash = `${sql4}-${JSON.stringify(params)}`;
+async function hashQuery(sql3, params) {
+  const dataToHash = `${sql3}-${JSON.stringify(params)}`;
   const encoder = new TextEncoder();
   const data = encoder.encode(dataToHash);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -80010,6 +80010,12 @@ function buildApprovalEmail(salonName, requesterName, description, reviewUrl, pa
 // src/routes/bookings.ts
 var router5 = (0, import_express5.Router)();
 router5.use("/bookings", tenantAuth);
+async function withTenantCtx(providerId, fn) {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT set_config('app.current_tenant_id', ${String(providerId)}, true)`);
+    return fn(tx);
+  });
+}
 function resolveProviderId(req) {
   return req.tenant?.tenantId ?? req.providerId ?? null;
 }
@@ -80035,28 +80041,20 @@ function timeToMinutes(t2) {
   const [h, m] = t2.split(":").map(Number);
   return (h ?? 0) * 60 + (m ?? 0);
 }
-async function hasStaffConflict(providerId, staffIdInt, date6, time4, duration3, excludeBookingId) {
+async function hasStaffConflict(tx, providerId, staffIdInt, date6, time4, duration3, excludeBookingId) {
   const newStart = timeToMinutes(time4);
   const newEnd = newStart + duration3;
-  const existing = await db.select({
-    id: bookings.id,
-    time: bookings.time,
-    duration: bookings.duration
-  }).from(bookings).where(
-    and(
-      eq(bookings.providerId, providerId),
-      eq(bookings.staffId, staffIdInt),
-      eq(bookings.date, date6),
-      ne(bookings.status, "cancelled")
-    )
-  );
+  const existing = await tx.select({ id: bookings.id, time: bookings.time, duration: bookings.duration }).from(bookings).where(and(
+    eq(bookings.providerId, providerId),
+    eq(bookings.staffId, staffIdInt),
+    eq(bookings.date, date6),
+    ne(bookings.status, "cancelled")
+  ));
   for (const b of existing) {
     if (excludeBookingId && b.id === excludeBookingId) continue;
     const existStart = timeToMinutes(b.time);
     const existEnd = existStart + b.duration;
-    if (newStart < existEnd && newEnd > existStart) {
-      return true;
-    }
+    if (newStart < existEnd && newEnd > existStart) return true;
   }
   return false;
 }
@@ -80066,14 +80064,15 @@ router5.get("/bookings", async (req, res) => {
   try {
     const { date: date6, staffId } = req.query;
     const conditions = [eq(bookings.providerId, providerId)];
-    if (date6 && typeof date6 === "string") {
-      conditions.push(eq(bookings.date, date6));
-    }
+    if (date6 && typeof date6 === "string") conditions.push(eq(bookings.date, date6));
     if (staffId && staffId !== "all" && typeof staffId === "string") {
       const sid = parseInt(staffId, 10);
       if (!isNaN(sid)) conditions.push(eq(bookings.staffId, sid));
     }
-    const rows = await db.select().from(bookings).where(and(...conditions)).orderBy(bookings.date, bookings.time);
+    const rows = await withTenantCtx(
+      providerId,
+      (tx) => tx.select().from(bookings).where(and(...conditions)).orderBy(bookings.date, bookings.time)
+    );
     return res.json({ bookings: rows.map(toFrontend) });
   } catch (err) {
     console.error("[GET /bookings]", err);
@@ -80114,39 +80113,32 @@ router5.post("/bookings", async (req, res) => {
     }
     const staffIdInt = staffId ? parseInt(String(staffId), 10) : null;
     const resolvedStaffId = staffIdInt && !isNaN(staffIdInt) ? staffIdInt : null;
-    if (resolvedStaffId) {
-      const conflict = await hasStaffConflict(
-        providerId,
-        resolvedStaffId,
-        String(date6),
-        String(time4),
-        durationInt
-      );
-      if (conflict) {
-        return res.status(409).json({
-          error: "staff_conflict",
-          message: "\u0627\u0644\u0645\u0648\u0638\u0641\u0629 \u0645\u062D\u062C\u0648\u0632\u0629 \u0641\u064A \u0647\u0630\u0627 \u0627\u0644\u0648\u0642\u062A"
-        });
+    const created = await withTenantCtx(providerId, async (tx) => {
+      if (resolvedStaffId) {
+        const conflict = await hasStaffConflict(tx, providerId, resolvedStaffId, String(date6), String(time4), durationInt);
+        if (conflict) throw Object.assign(new Error("staff_conflict"), { status: 409 });
       }
-    }
-    const [created] = await db.insert(bookings).values({
-      providerId,
-      clientName: clientName.trim(),
-      clientPhone: clientPhone ? String(clientPhone).trim() : null,
-      serviceId: serviceId ? String(serviceId) : null,
-      serviceName: serviceName ? String(serviceName).trim() : null,
-      staffId: resolvedStaffId,
-      date: String(date6),
-      time: String(time4),
-      duration: durationInt,
-      price: priceInt,
-      status: status ?? "confirmed",
-      notes: notes ? String(notes).trim() : null,
-      branchId: branchId ? String(branchId) : null,
-      source: "manual"
-    }).returning();
+      const [row] = await tx.insert(bookings).values({
+        providerId,
+        clientName: clientName.trim(),
+        clientPhone: clientPhone ? String(clientPhone).trim() : null,
+        serviceId: serviceId ? String(serviceId) : null,
+        serviceName: serviceName ? String(serviceName).trim() : null,
+        staffId: resolvedStaffId,
+        date: String(date6),
+        time: String(time4),
+        duration: durationInt,
+        price: priceInt,
+        status: status ?? "confirmed",
+        notes: notes ? String(notes).trim() : null,
+        branchId: branchId ? String(branchId) : null,
+        source: "manual"
+      }).returning();
+      return row;
+    });
     return res.status(201).json({ booking: toFrontend(created) });
   } catch (err) {
+    if (err.message === "staff_conflict") return res.status(409).json({ error: "staff_conflict", message: "\u0627\u0644\u0645\u0648\u0638\u0641\u0629 \u0645\u062D\u062C\u0648\u0632\u0629 \u0641\u064A \u0647\u0630\u0627 \u0627\u0644\u0648\u0642\u062A" });
     console.error("[POST /bookings]", err);
     return res.status(500).json({ error: "server_error" });
   }
@@ -80175,35 +80167,27 @@ router5.put("/bookings/:id", async (req, res) => {
         }
       }
     }
-    const newDate = updates["date"];
-    const newTime = updates["time"];
-    const newStaffId = updates["staffId"];
-    if ((newDate || newTime || newStaffId !== void 0) && newStaffId) {
-      const [current] = await db.select().from(bookings).where(and(eq(bookings.id, id), eq(bookings.providerId, providerId))).limit(1);
-      if (current) {
-        const checkDate = newDate ?? current.date;
-        const checkTime = newTime ?? current.time;
-        const checkDuration = updates["duration"] ?? current.duration;
-        const conflict = await hasStaffConflict(
-          providerId,
-          newStaffId,
-          checkDate,
-          checkTime,
-          checkDuration,
-          id
-        );
-        if (conflict) {
-          return res.status(409).json({
-            error: "staff_conflict",
-            message: "\u0627\u0644\u0645\u0648\u0638\u0641\u0629 \u0645\u062D\u062C\u0648\u0632\u0629 \u0641\u064A \u0647\u0630\u0627 \u0627\u0644\u0648\u0642\u062A"
-          });
+    const updated = await withTenantCtx(providerId, async (tx) => {
+      const newDate = updates["date"];
+      const newTime = updates["time"];
+      const newStaffId = updates["staffId"];
+      if ((newDate || newTime || newStaffId !== void 0) && newStaffId) {
+        const [current] = await tx.select().from(bookings).where(and(eq(bookings.id, id), eq(bookings.providerId, providerId))).limit(1);
+        if (current) {
+          const checkDate = newDate ?? current.date;
+          const checkTime = newTime ?? current.time;
+          const checkDuration = updates["duration"] ?? current.duration;
+          const conflict = await hasStaffConflict(tx, providerId, newStaffId, checkDate, checkTime, checkDuration, id);
+          if (conflict) throw Object.assign(new Error("staff_conflict"), { status: 409 });
         }
       }
-    }
-    const [updated] = await db.update(bookings).set(updates).where(and(eq(bookings.id, id), eq(bookings.providerId, providerId))).returning();
+      const [row] = await tx.update(bookings).set(updates).where(and(eq(bookings.id, id), eq(bookings.providerId, providerId))).returning();
+      return row;
+    });
     if (!updated) return res.status(404).json({ error: "not_found" });
     return res.json({ booking: toFrontend(updated) });
   } catch (err) {
+    if (err.message === "staff_conflict") return res.status(409).json({ error: "staff_conflict", message: "\u0627\u0644\u0645\u0648\u0638\u0641\u0629 \u0645\u062D\u062C\u0648\u0632\u0629 \u0641\u064A \u0647\u0630\u0627 \u0627\u0644\u0648\u0642\u062A" });
     console.error("[PUT /bookings/:id]", err);
     return res.status(500).json({ error: "server_error" });
   }
@@ -80217,7 +80201,10 @@ router5.delete(
     try {
       const id = parseInt(String(req.params["id"] ?? ""), 10);
       if (isNaN(id)) return res.status(400).json({ error: "invalid id" });
-      const [updated] = await db.update(bookings).set({ status: "cancelled", updatedAt: /* @__PURE__ */ new Date() }).where(and(eq(bookings.id, id), eq(bookings.providerId, providerId))).returning();
+      const [updated] = await withTenantCtx(
+        providerId,
+        (tx) => tx.update(bookings).set({ status: "cancelled", updatedAt: /* @__PURE__ */ new Date() }).where(and(eq(bookings.id, id), eq(bookings.providerId, providerId))).returning()
+      );
       if (!updated) return res.status(404).json({ error: "not_found" });
       logAudit({
         ...auditFromReq(req, "booking_cancelled"),
@@ -81570,7 +81557,7 @@ var internal_default = router12;
 var import_express13 = __toESM(require_express2(), 1);
 init_db2();
 init_drizzle_orm();
-async function withTenantCtx(providerId, fn) {
+async function withTenantCtx2(providerId, fn) {
   return db.transaction(async (tx) => {
     await tx.execute(
       sql`SELECT set_config('app.current_tenant_id', ${String(providerId)}, true)`
@@ -81592,7 +81579,7 @@ router13.get("/services", async (req, res) => {
     return res.status(401).json({ error: "unauthorized", detail: "no provider id resolved" });
   }
   try {
-    const services = await withTenantCtx(providerId, async (tx) => {
+    const services = await withTenantCtx2(providerId, async (tx) => {
       const result = await tx.execute(sql`
         SELECT id, name_ar, name_en, price, duration,
                category_ar, category_en, is_active, sort_order
@@ -81636,7 +81623,7 @@ router13.post("/services", async (req, res) => {
     return res.status(400).json({ error: "missing_required_fields", required: ["nameAr", "price", "duration"] });
   }
   try {
-    const newId = await withTenantCtx(providerId, async (tx) => {
+    const newId = await withTenantCtx2(providerId, async (tx) => {
       const result = await tx.execute(sql`
         INSERT INTO provider_services
           (provider_id, name_ar, name_en, price, duration, category_ar, category_en, sort_order)
@@ -81664,7 +81651,7 @@ router13.patch("/services/:id", async (req, res) => {
   if (isNaN(id)) return res.status(400).json({ error: "invalid_id" });
   const { nameAr, nameEn, price, duration: duration3, categoryAr, categoryEn, isActive, sortOrder } = req.body;
   try {
-    await withTenantCtx(providerId, async (tx) => {
+    await withTenantCtx2(providerId, async (tx) => {
       await tx.execute(sql`
         UPDATE provider_services
         SET
@@ -81692,7 +81679,7 @@ router13.delete("/services/:id", async (req, res) => {
   if (!providerId) return res.status(401).json({ error: "unauthorized" });
   if (isNaN(id)) return res.status(400).json({ error: "invalid_id" });
   try {
-    await withTenantCtx(providerId, async (tx) => {
+    await withTenantCtx2(providerId, async (tx) => {
       await tx.execute(sql`
         DELETE FROM provider_services WHERE id = ${id} AND provider_id = ${providerId}
       `);
@@ -82250,8 +82237,8 @@ async function handleStatusUpdate(status) {
   if (!waMessageId || !newStatus) return;
   try {
     const { db: db2 } = await Promise.resolve().then(() => (init_db2(), db_exports));
-    const { sql: sql4 } = await Promise.resolve().then(() => (init_drizzle_orm(), drizzle_orm_exports));
-    await db2.execute(sql4`
+    const { sql: sql3 } = await Promise.resolve().then(() => (init_drizzle_orm(), drizzle_orm_exports));
+    await db2.execute(sql3`
       UPDATE whatsapp_messages
       SET status = ${newStatus}, updated_at = NOW()
       WHERE wa_message_id = ${waMessageId}
@@ -83092,7 +83079,7 @@ var import_express21 = __toESM(require_express2(), 1);
 init_db2();
 init_drizzle_orm();
 var router21 = (0, import_express21.Router)();
-async function withTenantCtx2(providerId, fn) {
+async function withTenantCtx3(providerId, fn) {
   return db.transaction(async (tx) => {
     await tx.execute(sql`SELECT set_config('app.current_tenant_id', ${String(providerId)}, true)`);
     return fn(tx);
@@ -83132,7 +83119,7 @@ router21.get("/public/profile/:slug", async (req, res) => {
     `);
     if (providerRows.rows.length === 0) return res.status(404).json({ error: "salon_not_found" });
     const p = providerRows.rows[0];
-    const [svcRows, staffRows, branchRows] = await withTenantCtx2(p.id, async (tx) => {
+    const [svcRows, staffRows, branchRows] = await withTenantCtx3(p.id, async (tx) => {
       return Promise.all([
         tx.execute(sql`
           SELECT id, name_ar, name_en, price, duration, category_ar, category_en
@@ -83204,7 +83191,7 @@ router21.get("/public/salon/:slug", async (req, res) => {
     if (providerRows.rows.length === 0) return res.status(404).json({ error: "salon_not_found" });
     const provider = providerRows.rows[0];
     if (!provider.online_booking_enabled) return res.status(403).json({ error: "online_booking_disabled" });
-    const [servicesRows, staffRows, branchRows] = await withTenantCtx2(provider.id, async (tx) => {
+    const [servicesRows, staffRows, branchRows] = await withTenantCtx3(provider.id, async (tx) => {
       return Promise.all([
         tx.execute(sql`
           SELECT id, name_ar, name_en, price, duration, category_ar, category_en, sort_order
@@ -83275,7 +83262,7 @@ router21.get("/public/salon/:slug/availability", async (req, res) => {
     if (provRows.rows.length === 0) return res.status(404).json({ error: "salon_not_found" });
     const providerId = provRows.rows[0].id;
     if (staffId) {
-      const bookingRows = await withTenantCtx2(providerId, (tx) => tx.execute(sql`
+      const bookingRows = await withTenantCtx3(providerId, (tx) => tx.execute(sql`
         SELECT time, duration FROM bookings
         WHERE provider_id = ${providerId}
           AND date = ${date6}::date
@@ -83290,7 +83277,7 @@ router21.get("/public/salon/:slug/availability", async (req, res) => {
       }
       return res.json({ date: date6, occupied: [...occupied] });
     } else {
-      const { staffRows, bookingRows } = await withTenantCtx2(providerId, async (tx) => {
+      const { staffRows, bookingRows } = await withTenantCtx3(providerId, async (tx) => {
         const [staffRows2, bookingRows2] = await Promise.all([
           tx.execute(sql`SELECT id FROM staff WHERE provider_id = ${providerId} AND is_active = true`),
           tx.execute(sql`
@@ -83361,7 +83348,7 @@ router21.post("/public/bookings", async (req, res) => {
     const safePhone = String(clientPhone ?? "").trim().slice(0, 30);
     const safeEmail = String(clientEmail ?? "").trim().slice(0, 255);
     const safeNotes = String(notes ?? "").trim().slice(0, 1e3);
-    const { bookingId, service, staffName } = await withTenantCtx2(provider.id, async (tx) => {
+    const { bookingId, service, staffName } = await withTenantCtx3(provider.id, async (tx) => {
       const svcRows = await tx.execute(sql`
         SELECT id, name_ar, price, duration
         FROM provider_services
