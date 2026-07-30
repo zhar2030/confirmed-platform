@@ -104,7 +104,8 @@ export default function MarketingManager({ promotions, onAddPromotion, onToggleP
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-serif text-base font-bold text-[#14332B]">{isAr ? 'العروض الترويجية الحالية' : 'Current Promo Campaigns'}</h3>
             <button 
-              onClick={() => setShowAddModal(true)}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowAddModal(true); }}
               className="text-xs font-bold bg-[#FF5A5F] hover:bg-[#E04B50] text-white px-3 py-2 rounded-lg transition-all cursor-pointer"
             >
               {isAr ? '+ عرض أو كوبون جديد' : '+ Create Promo Code'}
