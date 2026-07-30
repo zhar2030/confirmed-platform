@@ -121,18 +121,27 @@ export default function ProviderDashboard({
   const [onlineBookingEnabled, setOnlineBookingEnabled] = useState(false);
 
   useEffect(() => {
-    // Staff sessions: tenantId is already available in the unified session
+    // Use tenantId from unified session for both owners and staff —
+    // the session always carries tenantId (set on login for owners, on staff-accept for staff).
     const session = getUnifiedSession();
-    if (session?.actorType === 'staff' && session?.tenantId) {
+    if (session?.tenantId) {
       setDbProviderId(session.tenantId);
+      // Also fetch slug + online-booking flag (non-blocking, best-effort)
+      if (session.actorType !== 'staff' && providerData?.username && providerData.username !== 'admin') {
+        fetch(`/api/auth/provider/${encodeURIComponent(providerData.username)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data?.provider?.slug) setProviderSlug(data.provider.slug);
+            if (data?.provider?.onlineBookingEnabled != null) setOnlineBookingEnabled(data.provider.onlineBookingEnabled);
+          })
+          .catch(() => {});
+      }
       return;
     }
 
-    // Owner sessions: look up provider record by username
+    // Fallback for legacy sessions without tenantId — look up by username
     if (!providerData?.username) return;
-    const un = providerData.username === 'admin'
-      ? null  // super-admin has no provider record
-      : providerData.username;
+    const un = providerData.username === 'admin' ? null : providerData.username;
     if (!un) return;
     fetch(`/api/auth/provider/${encodeURIComponent(un)}`)
       .then(r => r.json())
@@ -141,7 +150,7 @@ export default function ProviderDashboard({
         if (data.provider?.slug) setProviderSlug(data.provider.slug);
         if (data.provider?.onlineBookingEnabled != null) setOnlineBookingEnabled(data.provider.onlineBookingEnabled);
       })
-      .catch(() => { /* offline / not found — keep local mode */ });
+      .catch(() => {});
   }, [providerData?.username]);
 
   // Core App States — start empty, populated from API once provider ID is resolved
